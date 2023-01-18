@@ -1,0 +1,48 @@
+---
+title: "Untitled"
+author: "William A. Johnson"
+date: "2/2/2022"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(DTUrtle)
+
+condition <- "genotype"
+run <- "samba"
+
+lab_dir <- switch(run, 
+                   "samba" = "/Volumes/lab_flongo/",
+                   "scg" = "/labs/flongo/",
+                  stop("Unknown runtime parameter!"))
+root_dir <- paste0(lab_dir, "t41b_BD10-2_stim/DTUrtle/", condition, "/")
+
+dturtle <- readRDS(paste0(root_dir, "dturtle_results_", condition, ".rds"))
+tb <- as_tibble(dturtle$dge_analysis$results_sig)
+```
+
+## Genotype Comparison:
+```{r genotype, echo=FALSE}
+DT::datatable(tb)
+```
+
+## Stimulation Comparison:
+```{r echo=FALSE}
+condition <- "stim"
+run <- "samba"
+
+lab_dir <- switch(run, 
+                   "samba" = "/Volumes/lab_flongo/",
+                   "scg" = "/labs/flongo/",
+                  stop("Unknown runtime parameter!"))
+root_dir <- paste0(lab_dir, "t41b_BD10-2_stim/DTUrtle/", condition, "/")
+
+dturtle <- readRDS(paste0(root_dir, "dturtle_results_", condition, ".rds"))
+tb <- as_tibble(dturtle$dge_analysis$results_sig)
+
+DT::datatable(tb)
+```
+
