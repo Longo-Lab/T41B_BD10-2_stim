@@ -233,3 +233,30 @@ for (i in seq(plist)) {
   nlist = c(nlist, tlist[i])
 }
 grid_pdf(nlist, nrow=2, ncol=3, suffix="enrich_all.pdf")
+
+
+# # # looking at mean values of a gene set across all groups -------------------
+# # dds = DESeqDataSetFromMatrix(counts, metadata, ~ Group)
+
+# # # just estimateSizeFactors, don't need to run DE analysis
+# # dds = estimateSizeFactors(dds)
+
+# # # vst transform
+# # vst = vst(dds)
+
+# # # generate mean values per group
+# # mean_vst = data.frame("WT_VEH_noSTIM"=rowMeans(assay(vst)[,colData(vst)$Group == "WT_VEH_noSTIM"]),
+                      # # "WT_VEH_STIM"=rowMeans(assay(vst)[,colData(vst)$Group == "WT_VEH_STIM"]),
+                      # # "WT_DRUG_noSTIM"=rowMeans(assay(vst)[,colData(vst)$Group == "WT_DRUG_noSTIM"]),
+                      # # "WT_DRUG_STIM"=rowMeans(assay(vst)[,colData(vst)$Group == "WT_DRUG_STIM"]),
+                      # # "TRANS_VEH_noSTIM"=rowMeans(assay(vst)[,colData(vst)$Group == "TRANS_VEH_noSTIM"]),
+                      # # "TRANS_VEH_STIM"=rowMeans(assay(vst)[,colData(vst)$Group == "TRANS_VEH_STIM"]),
+                      # # "TRANS_DRUG_noSTIM"=rowMeans(assay(vst)[,colData(vst)$Group == "TRANS_DRUG_noSTIM"]),
+                      # # "TRANS_DRUG_STIM"=rowMeans(assay(vst)[,colData(vst)$Group == "TRANS_DRUG_STIM"])
+           # # )
+
+# # names = data.table(ensg=c("ENSMUSG00000018581", "ENSMUSG00000004885", "ENSMUSG00000059854", "ENSMUSG00000079022", "ENSMUSG00000038607", "ENSMUSG00000027716", "ENSMUSG00000103436", "ENSMUSG00000056481", "ENSMUSG00000027424", "ENSMUSG00000066189", "ENSMUSG00000029466", "ENSMUSG00000021811"),
+                   # # symbol=c("Dnah11", "Crabp2", "Hydin", "Col22a1", "Gng10", "Trpc3", "Gm36995", "Cd248", "Mgme1", "Cacng3", "Anapc7", "Dnajc9"))
+
+
+

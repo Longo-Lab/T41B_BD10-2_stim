@@ -18,15 +18,15 @@ library(jsonlite)
 
 # filepaths
 rootdir = '/labs/flongo/t41b_BD10-2_stim'
-wk_dir = paste0(rootdir, '/broad_analysis')
-setwd(paste0(rootdir, '/broad_analysis'))
+wk_dir = paste0(rootdir, '/.broad_analysis')
+setwd(paste0(rootdir, '/.broad_analysis'))
 
 # file naming info
 today = format(Sys.Date(), '%Y%m%d')
-nameset = '_LTP_broad_'
+nameset = '_APP_Activity_Dep_'
 
 # biomaRt database to draw from
-ensembl = useEnsembl("ensembl", dataset="mmusculus_gene_ensembl", version="107")
+ensembl = useEnsembl("ensembl", dataset="mmusculus_gene_ensembl", version="108")
 
 # Load sample data
 sampleTable = fread(paste0(rootdir, "/metadata_samples_relabel.csv"), header=T)
@@ -34,7 +34,7 @@ sampleTable = fread(paste0(rootdir, "/metadata_samples_relabel.csv"), header=T)
 # what annotation columns are the sample names and file names coming from?
 samp_names = "Sample_ID"
 # secondary name
-secon_name = "Genotype_Treatment"
+secon_name = "Group"
 # don't forget to define pca functions at the bottom
 
 
@@ -66,7 +66,7 @@ dds = DESeqDataSetFromMatrix(counts, sampleTable, ~ Subgroup)
 # Prep and Normalization
 
 # relevel factors to base value
-dds = dds[, dds$Stimulation == "STIM" ]
+dds = dds[, dds$Genotype == "TRANS" ]
 dds$MouseID = factor(dds$MouseID)
 dds$Subgroup = droplevels(dds$Subgroup)
 
@@ -200,16 +200,16 @@ my_pca_plot = function(vst, c_by, c_lab, c_type="disc", num=1000000) {
 # PCA plotting 
 pdf(file=paste0(today, nameset, "pca.pdf"), onefile=T, paper="USr", width=11, 
     height=8.5)
-my_pca_plot(vst, c_by="Genotype_Treatment", c_lab="Group", c_type="disc")
-my_pca_plot(vst, c_by="Genotype", c_lab="Genotype", c_type="disc")
+my_pca_plot(vst, c_by="Group", c_lab="Group", c_type="disc")
+my_pca_plot(vst, c_by="Stimulation", c_lab="Stimulation", c_type="disc")
 my_pca_plot(vst, c_by="Treatment", c_lab="Treatment", c_type="disc")
-my_pca_plot(vst, c_by="Genotype", c_lab="Top 500 Genotype", c_type="disc", num=500)
+my_pca_plot(vst, c_by="Stimulation", c_lab="Top 500 Stimulation", c_type="disc", num=500)
 my_pca_plot(vst, c_by="Treatment", c_lab="Top 500 Treatment", c_type="disc", num=500)
-my_pca_plot(vst, c_by="Genotype_Treatment", c_lab="Top 500 Group", c_type="disc", 
+my_pca_plot(vst, c_by="Group", c_lab="Top 500 Group", c_type="disc", 
             num=500)
-my_pca_plot(vst, c_by="Genotype", c_lab="Top 1000 Genotype", c_type="disc", num=1000)
+my_pca_plot(vst, c_by="Stimulation", c_lab="Top 1000 Stimulation", c_type="disc", num=1000)
 my_pca_plot(vst, c_by="Treatment", c_lab="Top 1000 Treatment", c_type="disc", num=1000)
-my_pca_plot(vst, c_by="Genotype_Treatment", c_lab="Top 1000 Group", c_type="disc", 
+my_pca_plot(vst, c_by="Group", c_lab="Top 1000 Group", c_type="disc", 
             num=1000)
 dev.off()
 
