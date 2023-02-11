@@ -18,8 +18,8 @@ library(jsonlite)
 
 # filepaths
 rootdir = '/labs/flongo/t41b_BD10-2_stim'
-wk_dir = paste0(rootdir, '/.broad_analysis')
-setwd(paste0(rootdir, '/.broad_analysis'))
+wk_dir = paste0(rootdir, '/broad_analysis')
+setwd(paste0(rootdir, '/broad_analysis'))
 
 # file naming info
 today = format(Sys.Date(), '%Y%m%d')
@@ -66,13 +66,20 @@ dds = DESeqDataSetFromMatrix(counts, sampleTable, ~ Subgroup)
 # Prep and Normalization
 
 # relevel factors to base value
-dds = dds[, dds$Genotype == "TRANS" ]
-dds$MouseID = factor(dds$MouseID)
-dds$Subgroup = droplevels(dds$Subgroup)
+# dds = dds[, dds$Genotype == "TRANS" ]
+# dds$MouseID = factor(dds$MouseID)
+# dds$Subgroup = droplevels(dds$Subgroup)
 
 # set model
 # design(dds) = ~ MouseID + Subgroup
 
+# rename Groups
+colData(dds)$Group = gsub("TRANS", "APPL/S", colData(dds)$Group)
+colData(dds)$Group = gsub("WT", "Wt", colData(dds)$Group)
+colData(dds)$Group = gsub("DRUG", "BD10-2", colData(dds)$Group)
+colData(dds)$Group = gsub("VEH", "Vehicle", colData(dds)$Group)
+colData(dds)$Group = gsub("noSTIM", "", colData(dds)$Group)
+colData(dds)$Group = gsub("STIM", "TBS", colData(dds)$Group)
 
 # gene info for filtering by gene biotype
 if(!file.exists("gene_info.txt")){
