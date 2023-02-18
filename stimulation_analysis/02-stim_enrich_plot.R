@@ -109,7 +109,7 @@ p = ggplot(a, aes(x=LogBH, y=term_name, fill=Tiss)) +
   scale_fill_brewer(type="qual", palette="Set2") +
   xlab(expression("Downregulated" %<-% "-Log10 FDR" %->% "Upregulated")) +
   geom_text(
-    data = subset(a, LogBH < 0 & Tiss == tiss$full[1]),
+    data = subset(a, LogBH <= 0 & Tiss == tiss$full[1]),
     aes(0, y=term_name, label=term_name),
     hjust = 0,
     nudge_x = 0.3,
@@ -120,9 +120,9 @@ p = ggplot(a, aes(x=LogBH, y=term_name, fill=Tiss)) +
   geom_text(
     data = subset(a, LogBH > 0 & Tiss == tiss$full[1]),
     aes(0, y=term_name, label=term_name),
-    hjust = 1,
-    nudge_x = -0.3,
-    colour = "black",
+    hjust = 0,
+    nudge_x = 0.3,
+    colour = "white",
     family = "Arial",
     size = 4
   ) +
@@ -136,10 +136,10 @@ p = ggplot(a, aes(x=LogBH, y=term_name, fill=Tiss)) +
         axis.text.x = element_text(family = "Arial", size = 16),
         plot.title=element_text(size=20, hjust=0.5, face="bold"),
         plot.subtitle=element_text(size=18, hjust=0.5)) +
-  ggtitle("Stimulation effect enrichment of GO:BP terms", 
-          sub="top 5 up/downregulated in each condition")
+  ggtitle("Stimulation effect enrichment of GO: Biological Processes", 
+          sub="top 5 up & downregulated terms in each group")
 ggsave(filename=paste(today, nameset, "stimulation_enrich_bar.pdf", sep="."),
-       plot=p, device=cairo_pdf, width=15, height=10)
+       plot=p, device=cairo_pdf, width=13, height=12)
 
 
 
