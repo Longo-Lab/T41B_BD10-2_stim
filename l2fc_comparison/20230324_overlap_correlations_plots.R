@@ -14,20 +14,14 @@ setwd(paste0(rootdir, '/l2fc_comparison'))
 today = format(Sys.Date(), '%Y%m%d')
 nameset = "APP_Activity_Dep"
 
-#####################################################
 # fetch lists from directories
-f_names = c("5", "6")
-target_files = unlist(lapply(f_names, function(i){
+f_names = data.table(short=c("5", "6"),
+                     long=c("TBS Effect (in Wt)", "TBS Effect (in APP)"))
+target_files = unlist(lapply(f_names$short, function(i){
   c(paste0(rootdir, paste0("/res.", i, ".csv")))
 }))
-pattern = c("log2FoldChange.", "baseMean.", "5", "6")
-replacement = c("Log2 Fold Change ", "Base Mean Expression ", "Stimulation Effect (in Wt)",
-                "Stimulation Effect (in APP)")
 
-###############FUNCTIONS
-# plots for AAIC -----------------------------------
 # Functions -------------------------------------------------------
-# GProfiler2 - loop through each pheno in list and run gprofiler2
 get_cols = function(str, dds, lookup, return) {
   # for a string of ens ids: explode, look up symbols, return symbols as string
   # string: comma separated ens_ids
@@ -38,9 +32,10 @@ get_cols = function(str, dds, lookup, return) {
   y = dds[match(unlist(str_split(str, ",")), dds[, get(lookup)]), get(return)]
   return(paste0(y, collapse=","))
 }
+
 # get q2 dataframe and order by the sum of abs L2fc
 get_quartile_enrich = function(dt, qtl=c(1, 2, 3, 4), colx="avg_log2FC.stim", 
-                               coly="avg_log2FC.geno", gencol="gene", out="") {
+                               coly="avg_log2FC.geno", gencol="gene", out=NULL) {
   # for a merged datatable of two snRNAseq DEs, looks up a given qudrant in gProfiler
   # dt: merged data table
   # qtl: which quadrant to look at
@@ -72,45 +67,83 @@ get_quartile_enrich = function(dt, qtl=c(1, 2, 3, 4), colx="avg_log2FC.stim",
   }
 }
 
+# correlation plot function (w/ pearson)
+plot_corr = function (dt, x, y, labcol="GeneSymbol", title=NULL, ...) {
+  # scatterplot with a trendline and repel labels
+  # dt: combined data.table for both axes to plot
+  # x: column name to plot on x
+  # y: column name to plot on y
+  # labcol: column name for point labels
+  # title: main title, sub will be the correlation equation
+  # ...: additional objects passed to ggscatter
+  # returns: ggobject
+  sub = sprintf("R = %.3f; p < %.3g", 
+                cor.test(dt[[x]], dt[[y]])$estimate[[1]], 
+                max(cor.test(dt[[x]], dt[[y]])$p.value, .Machine$double.xmin))
+  ggscatter(dt, x=x, y=y, add="reg.line", conf.int=T, col="#8073ac",
+            add.params=list(color="#053061", fill="#fee0b6"), ...) + 
+    ggtitle(title, subtitle=sub) + ### add a graying for close to y=x
+    geom_hline(yintercept=0, linetype="dashed", col='gray') +
+    geom_vline(xintercept=0, linetype="dashed", col='gray') +
+    geom_text_repel(
+      aes(label=ifelse(get(x) > 6 | get(y) > 6, 
+      as.character(get(labcol)),"")), 
+                    nudge_x=1,
+                    nudge_y=1,
+                    size=5,
+                    fontface=2,
+                    force=10, 
+                    force_pull=0.1, 
+                    max.overlaps=40, 
+                    point.size=3, 
+                    min.segment.length=0,
+                    segment.color="gray") +
+    scale_x_continuous(expand=expansion(mult=0.1)) +
+    geom_text_repel(
+      aes(label=ifelse(get(x) < -2.75 | get(y) < -2.75, 
+      as.character(get(labcol)),"")), 
+                    nudge_x=-1,
+                    nudge_y=-1,
+                    size=5,
+                    fontface=2,
+                    force=10, 
+                    force_pull=0.1, 
+                    max.overlaps=40, 
+                    point.size=3, 
+                    min.segment.length=0,
+                    segment.color="gray") +
+    scale_y_continuous(expand=expansion(mult=0.1))
+}
+
 # Main ---------------------------------------------
 # L2FC comparison
-lapply(c(""), function(i) {
-  fl = lapply(target_files, fread)
-  both = merge(fl[[1]], fl[[2]], by=c("Gene_id", "GeneSymbol"), 
-               suffix=c(".geno", ".stim"))
-  both = both[!is.na(Gene_id)]
-  both = both[(pvalue.stim < 0.05 & pvalue.geno < 0.05)]
+fl = lapply(paste0(rootdir, paste0("/res.", f_names$short, ".csv")), fread)
+both = merge(fl[[1]], fl[[2]], by=c("Gene_id", "GeneSymbol"), 
+             suffix=c(".x", ".y"))
+both = both[!is.na(Gene_id)]
+exclude = c("TEC", "snoRNA", "misc_RNA", "rRNA", "ribozyme", "snRNA", 
+            "processed_pseudogene", "transcribed_processed_pseudogene", 
+            "transcribed_unprocessed_pseudogene", "unprocessed_pseudogene")
+both = both[!(Gene_type.y %in% exclude)]
+both = both[padj.x < 0.05 | padj.y < 0.05]
 
-  # correlation plot function (w/ pearson)
-  plot_corr = function (table, x, y, title=NULL) {
-    sub = sprintf("R = %.3f; p < %.3g", 
-                  cor.test(table[[x]], table[[y]])$estimate[[1]], 
-                  max(cor.test(table[[x]], table[[y]])$p.value, .Machine$double.xmin))
-    ggscatter(table, x=x, y=y, add="reg.line", conf.int=T, col="#8073ac",
-              add.params=list(color="#053061", fill="#fee0b6")) + 
-      ggtitle(title, subtitle=sub) +
-      geom_hline(yintercept=0, linetype="dashed", col='gray') +
-      geom_vline(xintercept=0, linetype="dashed", col='gray') +
-      geom_text_repel(
-        # aes(label=ifelse(abs(get(x)) > 0.5 | abs(get(y)) > 0.55, 
-        aes(label=ifelse(get(x) > 5 | get(y) > 5 | get(x) < -2 | get(y) < -2, 
-        as.character(GeneSymbol),"")), max.overlaps=40)
-  }
-  p1 = plot_corr(both, "log2FoldChange.stim", "log2FoldChange.geno")
-  ggsave(filename=paste(today, nameset, "L2FC.pdf", sep="."), 
-         plot=p1, device=cairo_pdf)
-  ggsave(filename=paste(today, nameset, "L2FC.png", sep="."), 
-         plot=p1, type=cairo)
-  # look up term enrichments
-  get_quartile_enrich(both, 1, colx="log2FoldChange.stim", 
-                      coly="log2FoldChange.geno", gencol="Gene_id", out=i)
-  get_quartile_enrich(both, 2, colx="log2FoldChange.stim", 
-                      coly="log2FoldChange.geno", gencol="Gene_id", out=i)
-  get_quartile_enrich(both, 3, colx="log2FoldChange.stim", 
-                      coly="log2FoldChange.geno", gencol="Gene_id", out=i)
-  get_quartile_enrich(both, 4, colx="log2FoldChange.stim", 
-                      coly="log2FoldChange.geno", gencol="Gene_id", out=i)
-})
+# scatterplot of L2FCs
+p1 = plot_corr(both, "log2FoldChange.x", "log2FoldChange.y", 
+               xlab=paste("Log2 Fold Change", f_names$long[1]),
+               ylab=paste("Log2 Fold Change", f_names$long[2]))
+ggsave(filename=paste(today, nameset, "L2FC.pdf", sep="."), 
+       plot=p1, device=cairo_pdf)
+ggsave(filename=paste(today, nameset, "L2FC.png", sep="."), 
+       plot=p1, type=cairo)
+# look up term enrichments
+get_quartile_enrich(both, 1, colx="log2FoldChange.x", 
+                    coly="log2FoldChange.y", gencol="Gene_id")
+get_quartile_enrich(both, 2, colx="log2FoldChange.x", 
+                    coly="log2FoldChange.y", gencol="Gene_id")
+get_quartile_enrich(both, 3, colx="log2FoldChange.x", 
+                    coly="log2FoldChange.y", gencol="Gene_id")
+get_quartile_enrich(both, 4, colx="log2FoldChange.x", 
+                    coly="log2FoldChange.y", gencol="Gene_id")
 
 # Grab gprofiler results
 qs = c("q1", "q2", "q3", "q4")
