@@ -38,8 +38,8 @@ nameset = "APP_Activity_Dep"
 
 # fetch lists from directories
 f_names = data.table(short=c("5", "6", "7"),
-                     long=c("TBS Effect (in Wt)", "TBS Effect (in APP)", 
-                            "TBS Effect (in APP BD10-2)"))
+                     long=c("TBS Effect in Wt", "TBS Effect in APP", 
+                            "TBS Effect in APP BD10-2"))
 
 # Functions -------------------------------------------------------
 get_cols = function(str, dds, lookup, return) {
@@ -171,6 +171,12 @@ both[, deltaFC.yz := log2FoldChange.y - log2FoldChange.z]
 both[, deltaFC.zx := log2FoldChange.z - log2FoldChange.x]
 # values for coloring points
 both[, xy.padj := ifelse(padj.x < 0.05, ifelse(padj.y < 0.05, "both", "x only"), "y only")]
+both$xy.padj = factor(both$xy.padj, 
+                      levels=c("y only", "x only", "both"),
+                      labels=c(paste(f_names$long[2], "only"), 
+                               paste(f_names$long[1], "only"), 
+                               "TBS Effect in both"))
+
 
 # scatterplot of L2FCs
 p1 = plot_corr(both, "log2FoldChange.x", "log2FoldChange.y", 
@@ -215,14 +221,14 @@ both = both[!(Gene_type %in% exclude)]
 labs = data.frame(
   xpos = c(-Inf, -Inf, Inf, Inf),
   ypos = c(-Inf, Inf, -Inf, Inf),
-  text = c("bottom-left", "bottom-right", "top-left", "top-right"),
-  hj = c(0,0,1,1) ,
-  vj = c(0,1,0,1)) #<- adjust
+  text = c("bottom-left", "top-left", "bottom-right", "top-right"),
+  hj = c(-0.5, -0.5, 0, 0) ,
+  vj = c(-0.5, 0, 0, 0)) #<- adjust
 
 ggplot(both, aes(x=log2FoldChange.x, y=deltaFC.yx, color=xy.padj)) + 
   geom_point() + 
-  xlab(f_names$long[1]) + 
-  ylab("DeltaFC TBS Effect (APP - Wt groups)") +
+  xlab(paste("Log2 Fold Change", f_names$long[1])) + 
+  ylab("DeltaFC TBS Effect (APP - Wt)") +
   geom_hline(yintercept=0, col='black') +
   geom_text_repel(aes(label=ifelse(abs(deltaFC.yx) > 2, GeneSymbol,"")), 
     force=15,
@@ -231,7 +237,7 @@ ggplot(both, aes(x=log2FoldChange.x, y=deltaFC.yx, color=xy.padj)) +
     max.overlaps=40, 
     segment.color="gray",
     show.legend=F) + # set x limits for labels > 2.5 or < -2.5
-  # scale_color_brewer(palette="GnBu", direction=-1) + 
+  scale_color_brewer(palette="Dark2", direction=1, name="Padj < 0.05") + 
   geom_text(data=labs, aes(x=xpos, y=ypos, hjust=hj, vjust=vj, label=text), inherit.aes=F) +
   theme_classic() +
   theme(axis.line.x=element_line(color="white"))
