@@ -221,26 +221,39 @@ both = both[!(Gene_type %in% exclude)]
 labs = data.frame(
   xpos = c(-Inf, -Inf, Inf, Inf),
   ypos = c(-Inf, Inf, -Inf, Inf),
-  text = c("bottom-left", "top-left", "bottom-right", "top-right"),
-  hj = c(-0.5, -0.5, 0, 0) ,
-  vj = c(-0.5, 0, 0, 0)) #<- adjust
+  text = c("Shared loss", "LTP-dependent loss", "LTP-dependent gain", "Shared gain"),
+  hj = c(-0.3, -0.1, 1, 1.5) ,
+  vj = c(-1, 1.5, -1, 1.5)) #<- adjust
 
 ggplot(both, aes(x=log2FoldChange.x, y=deltaFC.yx, color=xy.padj)) + 
-  geom_point() + 
+  geom_point(aes(alpha=deltaFC.zx), size=3, stroke=0) + 
   xlab(paste("Log2 Fold Change", f_names$long[1])) + 
   ylab("DeltaFC TBS Effect (APP - Wt)") +
   geom_hline(yintercept=0, col='black') +
-  geom_text_repel(aes(label=ifelse(abs(deltaFC.yx) > 2, GeneSymbol,"")), 
+  geom_vline(xintercept=0, col='black') +
+  geom_text_repel(aes(label=ifelse(deltaFC.yx > 2 & abs(deltaFC.zx) < 2, GeneSymbol,"")), 
+    force=50,
+    size=5,
+    fontface=2,
+    max.overlaps=40, 
+    segment.color="gray",
+    show.legend=F,
+    ylim=(c(2.5, NA))) + 
+  geom_text_repel(aes(label=ifelse(deltaFC.yx < -2 & abs(deltaFC.zx) < 2, GeneSymbol,"")), 
     force=15,
     size=5,
     fontface=2,
     max.overlaps=40, 
     segment.color="gray",
-    show.legend=F) + # set x limits for labels > 2.5 or < -2.5
+    show.legend=F,
+    ylim=(c(NA, -2.5))) + 
   scale_color_brewer(palette="Dark2", direction=1, name="Padj < 0.05") + 
-  geom_text(data=labs, aes(x=xpos, y=ypos, hjust=hj, vjust=vj, label=text), inherit.aes=F) +
+  scale_alpha_continuous(breaks=c(-2, 0, 6), range=c(0, 1)) +
+  geom_text(data=labs, 
+            aes(x=xpos, y=ypos, hjust=hj, vjust=vj, label=text), 
+            inherit.aes=F) +
   theme_classic() +
-  theme(axis.line.x=element_line(color="white"))
+  theme(axis.line=element_line(color="white"))
 
 
 
@@ -262,8 +275,13 @@ ggplot(both, aes(x=log2FoldChange.x, y=deltaFC.yx, color=xy.padj)) +
 # dev.off()
 
 
+dt = data.table(iris)[,Sepal.Width := ifelse(.I %% 2 == 0, Sepal.Width, -Sepal.Width)]
 
-
+ggplot(dt, aes(x=Sepal.Length, y=Petal.Length, color=Species)) + 
+  geom_point(aes(alpha=Sepal.Width), size=3, stroke=0) + 
+  scale_alpha_continuous(range=c(0.01,1)) + 
+  scale_color_brewer(palette="Dark2", direction=1) + 
+  theme_classic()
 
 
 
