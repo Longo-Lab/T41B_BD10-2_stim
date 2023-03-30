@@ -176,29 +176,33 @@ both$xy.padj = factor(both$xy.padj,
                       labels=c(paste(f_names$long[2], "only"), 
                                paste(f_names$long[1], "only"), 
                                "TBS Effect in both"))
+exclude = c("TEC", "snoRNA", "misc_RNA", "rRNA", "ribozyme", "snRNA", 
+            "processed_pseudogene", "transcribed_processed_pseudogene", 
+            "transcribed_unprocessed_pseudogene", "unprocessed_pseudogene")
+both = both[!(Gene_type %in% exclude)]
 
 
 # scatterplot of L2FCs
 p1 = plot_corr(both, "log2FoldChange.x", "log2FoldChange.y", 
                xlab=paste("Log2 Fold Change", f_names$long[1]),
                ylab=paste("Log2 Fold Change", f_names$long[2]))
-ggsave(filename=paste(today, nameset, "L2FC.pdf", sep="."), 
+ggsave(filename=paste(today, nameset, "L2FC_reg.pdf", sep="."), 
        plot=p1, device=cairo_pdf)
-ggsave(filename=paste(today, nameset, "L2FC.png", sep="."), 
+ggsave(filename=paste(today, nameset, "L2FC_reg.png", sep="."), 
        plot=p1, type=cairo)
 # look up term enrichments
 get_quartile_enrich(both, 1, colx="log2FoldChange.x", 
-                    coly="log2FoldChange.y", gencol="Gene_id")
+                    coly="log2FoldChange.y", gencol="Gene_id", out="reg")
 get_quartile_enrich(both, 2, colx="log2FoldChange.x", 
-                    coly="log2FoldChange.y", gencol="Gene_id")
+                    coly="log2FoldChange.y", gencol="Gene_id", out="reg")
 get_quartile_enrich(both, 3, colx="log2FoldChange.x", 
-                    coly="log2FoldChange.y", gencol="Gene_id")
+                    coly="log2FoldChange.y", gencol="Gene_id", out="reg")
 get_quartile_enrich(both, 4, colx="log2FoldChange.x", 
-                    coly="log2FoldChange.y", gencol="Gene_id")
+                    coly="log2FoldChange.y", gencol="Gene_id", out="reg")
 
 # Grab gprofiler results
 qs = c("q1", "q2", "q3", "q4")
-fh = lapply(qs, function(i) lapply(c(""), function(j){
+fh = lapply(qs, function(i) lapply(c("reg"), function(j){
   paste(today, nameset, j, i, "csv", sep=".")
 }))
 # read in and fail silently for missing
@@ -209,15 +213,10 @@ setattr(fl, 'names', unlist(fn))
 fl = fl[unlist(lapply(fl, is.data.table))]
 fl = lapply(fl, function(i) i[, "query" := NULL])
 tbl = rbindlist(fl, idcol="quadrant")
-fwrite(tbl, paste(today, nameset, "all_quadrants.nominalp.csv", sep="."))
+fwrite(tbl, paste(today, nameset, "reg.all_quadrants.nominalp.csv", sep="."))
 
 
-# Plot of differential L2FC between TBS in APP and Wt
-exclude = c("TEC", "snoRNA", "misc_RNA", "rRNA", "ribozyme", "snRNA", 
-            "processed_pseudogene", "transcribed_processed_pseudogene", 
-            "transcribed_unprocessed_pseudogene", "unprocessed_pseudogene")
-both = both[!(Gene_type %in% exclude)]
-
+# Exploring deltaFCs --------------------------------------------------------
 labs = data.frame(
   xpos = c(-Inf, -Inf, Inf, Inf),
   ypos = c(-Inf, Inf, -Inf, Inf),
@@ -225,63 +224,81 @@ labs = data.frame(
   hj = c(-0.3, -0.1, 1, 1.5) ,
   vj = c(-1, 1.5, -1, 1.5)) #<- adjust
 
-ggplot(both, aes(x=log2FoldChange.x, y=deltaFC.yx, color=xy.padj)) + 
+p2 = ggplot(both, aes(x=log2FoldChange.x, y=deltaFC.yx, color=xy.padj)) + 
   geom_point(aes(alpha=deltaFC.zx), size=3, stroke=0) + 
   xlab(paste("Log2 Fold Change", f_names$long[1])) + 
   ylab("DeltaFC TBS Effect (APP - Wt)") +
   geom_hline(yintercept=0, col='black') +
   geom_vline(xintercept=0, col='black') +
-  geom_text_repel(aes(label=ifelse(deltaFC.yx > 2 & abs(deltaFC.zx) < 2, GeneSymbol,"")), 
-    force=50,
+  geom_text_repel(aes(label=ifelse(deltaFC.yx > 0.4 
+                                     & abs(deltaFC.zx) < 1.5
+                                       & log2FoldChange.x < -0.25, 
+                                   GeneSymbol,"")), 
+    force=400,
+    force_pull=0.1,
+    size=5,
+    fontface=2,
+    max.overlaps=50, 
+    segment.color="gray",
+    show.legend=F,
+    ylim=(c(2.5, 7))) + 
+  geom_text_repel(aes(label=ifelse(deltaFC.yx < -1.25 
+                                     & abs(deltaFC.zx) < 1.5 
+                                       & log2FoldChange.x > 3, 
+                                   GeneSymbol,"")), 
+    force=100,
+    force_pull=0.1,
     size=5,
     fontface=2,
     max.overlaps=40, 
     segment.color="gray",
     show.legend=F,
-    ylim=(c(2.5, NA))) + 
-  geom_text_repel(aes(label=ifelse(deltaFC.yx < -2 & abs(deltaFC.zx) < 2, GeneSymbol,"")), 
-    force=15,
-    size=5,
-    fontface=2,
-    max.overlaps=40, 
-    segment.color="gray",
-    show.legend=F,
-    ylim=(c(NA, -2.5))) + 
-  scale_color_brewer(palette="Dark2", direction=1, name="Padj < 0.05") + 
-  scale_alpha_continuous(breaks=c(-2, 0, 6), range=c(0, 1)) +
-  geom_text(data=labs, 
+    ylim=(c(-5, -2.5))) + 
+  scale_color_brewer(palette="Dark2", direction=1, name="TBS effect Padj < 0.05") + 
+  continuous_scale(
+    "alpha", "my_scale", name="DeltaFC TBS Effect\n(APP BD10-2 - Wt)",
+    palette = function(x) abs(1 - abs(x - 0.5)* 2),
+    rescaler = ~ scales::rescale_mid(.x, mid = 0)) +
+  geom_text(data=labs, size=4, fontface=2,
             aes(x=xpos, y=ypos, hjust=hj, vjust=vj, label=text), 
             inherit.aes=F) +
+  xlim(-6, NA) + 
   theme_classic() +
   theme(axis.line=element_line(color="white"))
 
+ggsave(filename=paste(today, nameset, "L2FC_delta.pdf", sep="."), 
+       plot=p2, device=cairo_pdf)
+ggsave(filename=paste(today, nameset, "L2FC_delta.png", sep="."), 
+       plot=p2, type=cairo)
 
 
 
-# # dummy gost data object to insert results into
-# gost = gost(c("Lrfn5", "Dab1", "Slc17a7"), organism="mmusculus")
-# gost$result = rbindlist(fl, idcol="query")
-# gost$result = gost$result[term_size < 2000]
+# look up term enrichments
+get_quartile_enrich(both, 1, colx="log2FoldChange.x", 
+                    coly="deltaFC.yx", gencol="Gene_id", out="delta")
+get_quartile_enrich(both, 2, colx="log2FoldChange.x", 
+                    coly="deltaFC.yx", gencol="Gene_id", out="delta")
+get_quartile_enrich(both, 3, colx="log2FoldChange.x", 
+                    coly="deltaFC.yx", gencol="Gene_id", out="delta")
+get_quartile_enrich(both, 4, colx="log2FoldChange.x", 
+                    coly="deltaFC.yx", gencol="Gene_id", out="delta")
 
-# # highlight terms
-# terms = unique(gost$result[source %in% c("GO:BP", "GO:CC", "GO:MF", "KEGG")
-                           # ][order(p_value)
-                             # ][, head(.SD, 10), by="query"
-                               # ][, term_id])
+# Grab gprofiler results
+qs = c("q1", "q2", "q3", "q4")
+fh = lapply(qs, function(i) lapply(c("delta"), function(j){
+  paste(today, nameset, j, i, "csv", sep=".")
+}))
+# read in and fail silently for missing
+fl = lapply(unlist(fh), function(i) try(fread(i), silent=T))
+fn = lapply(qs, function(i) print(i, sep="."))
+setattr(fl, 'names', unlist(fn))
+# drop unneeded & combine
+fl = fl[unlist(lapply(fl, is.data.table))]
+fl = lapply(fl, function(i) i[, "query" := NULL])
+tbl = rbindlist(fl, idcol="quadrant")
+fwrite(tbl, paste(today, nameset, "delta.all_quadrants.nominalp.csv", sep="."))
 
-# CairoPDF(file=file.path(type, paste(today, nameset, type, "gost_plot.pdf", sep=".")), width=14, height=20)
-# p = gostplot(gost, capped = FALSE, interactive = FALSE)
-# pp = publish_gostplot(p, highlight_terms=terms)
-# dev.off()
 
-
-dt = data.table(iris)[,Sepal.Width := ifelse(.I %% 2 == 0, Sepal.Width, -Sepal.Width)]
-
-ggplot(dt, aes(x=Sepal.Length, y=Petal.Length, color=Species)) + 
-  geom_point(aes(alpha=Sepal.Width), size=3, stroke=0) + 
-  scale_alpha_continuous(range=c(0.01,1)) + 
-  scale_color_brewer(palette="Dark2", direction=1) + 
-  theme_classic()
 
 
 
