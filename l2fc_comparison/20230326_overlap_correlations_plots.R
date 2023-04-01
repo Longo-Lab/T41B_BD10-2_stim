@@ -296,6 +296,7 @@ setattr(fl, 'names', unlist(fn))
 fl = fl[unlist(lapply(fl, is.data.table))]
 fl = lapply(fl, function(i) i[, "query" := NULL])
 tbl = rbindlist(fl, idcol="quadrant")
+tbl = tbl[term_size < 1000]
 fwrite(tbl, paste(today, nameset, "delta.all_quadrants.nominalp.csv", sep="."))
 
 
