@@ -18,6 +18,10 @@ sbatch -J T41B_BD10-2_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_biodomain_enrichment_%x.log \
   --wrap "ml R/4.0; biodomain_enrichment.R -n T41B_BD10-2_stim -g APPL/S -d BD10-2 -c Gene_id,log2FoldChange,padj"
 
+# save_dashboard_files.R
+sbatch -J T41B_BD10-2_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
+  -o %x/%A_save_dashboard_files_%x.log \
+  --wrap "ml R/4.2.2; save_dashboard_files.R T41B_BD10-2_stim"
 
 # round_num="R1"
 # nameset="T41B_BD10-2_unstim"
@@ -37,6 +41,10 @@ sbatch -J T41B_BD10-2_unstim --mem=5G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_biodomain_enrichment_%x.log \
   --wrap "ml R/4.0; biodomain_enrichment.R -n T41B_BD10-2_unstim -g APPL/S -d BD10-2 -c Gene_id,log2FoldChange,padj"
 
+# save_dashboard_files.R
+sbatch -J T41B_BD10-2_unstim --mem=5G -c 2 -t 01:00:00 -p interactive \
+  -o %x/%A_save_dashboard_files_%x.log \
+  --wrap "ml R/4.2.2; save_dashboard_files.R T41B_BD10-2_unstim"
 
 # round_num="R1"
 # nameset="T41B_stim"
@@ -56,3 +64,8 @@ sbatch -J T41B_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
 sbatch -J T41B_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_biodomain_enrichment_%x.log \
   --wrap "ml R/4.0; biodomain_enrichment.R -n T41B_stim -g APPL/S -d TBS -c Gene_id,log2FoldChange,padj"
+
+# save_dashboard_files.R
+sbatch -J T41B_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
+  -o %x/%A_save_dashboard_files_%x.log \
+  --wrap "ml R/4.2.2; save_dashboard_files.R T41B_stim"

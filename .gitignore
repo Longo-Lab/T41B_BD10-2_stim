@@ -17,3 +17,5 @@
 !*/
 .Rproj.user
 
+# But do ignore these files...
+deploy.R
