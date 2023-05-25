@@ -370,7 +370,8 @@ server <- function(input, output, session) {
                       rowCallback = JS(render_tooltip),
                       columnDefs = list(
                         list(targets = modules_col:(modules_col + 6), className = 'dt-right')
-                      )
+                      ),
+                      search = list(regex = T)
                     )
                   ) %>% 
                   formatRound(grep('log2', names(results), value = T), 3) %>%
