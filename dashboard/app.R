@@ -247,6 +247,7 @@ server <- function(input, output, session) {
     de_names <- page_data()[['meta']][['de_names']]
     geno <- page_data()[['meta']][['geno']]
     drug <- page_data()[['meta']][['drug']]
+    footnote <- page_data()[['meta']][['footnote']]
     
     include_wt <- ifelse(length(analyses) == 4, T, F)
     
@@ -329,6 +330,7 @@ server <- function(input, output, session) {
         results <- page_data()[['results']][[cl]]
         l2fc_correlations <- page_data()[['l2fc_correlations']][[cl]]
         gprofilers <- page_data()[['gprofilers']][[cl]]
+        results <- page_data()[['results']][[cl]]
         
         tabItem(
           tabName = str_c('page_', cl),
@@ -390,7 +392,8 @@ server <- function(input, output, session) {
                     options = list(
                       dom = 't'
                     )
-                  )
+                  ),
+                footnote
               )
             )
           )
