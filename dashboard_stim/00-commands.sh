@@ -13,12 +13,12 @@ gzip -c ../res.7.csv > "${nameset}/${round_num}.${nameset}.RNA.Tg-D-StvsTg-D-Un.
 # biodomain_correlation.R
 sbatch -J $nameset --mem=5G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_biodomain_correlation_%x.log \
-  --wrap "ml R/4.2.2; biodomain_correlation.R -n $nameset -g APPL/S -d BD10-2 -c Gene_id,log2FoldChange -a Wt-StvsWt-Un,Tg-StvsTg-Un,Tg-D-StvsTg-D-Un -t stim"
+  --wrap "ml R/4.2.2; biodomain_correlation.R -n $nameset -g APPL/S -d BD10-2 -c Gene_id,log2FoldChange -t stim"
 
 # biodomain_enrichment.R
 sbatch -J $nameset --mem=5G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_biodomain_enrichment_%x.log \
-  --wrap "ml R/4.2.2; biodomain_enrichment.R -n $nameset -g APPL/S -d BD10-2 -c Gene_id,log2FoldChange,padj -a Wt-StvsWt-Un,Tg-StvsTg-Un,Tg-D-StvsTg-D-Un -t stim"
+  --wrap "ml R/4.2.2; biodomain_enrichment.R -n $nameset -g APPL/S -d BD10-2 -c Gene_id,log2FoldChange,padj -t stim"
 
 # save_stim_dashboard_files.R
 sbatch -J $nameset --mem=5G -c 2 -t 01:00:00 -p interactive \
