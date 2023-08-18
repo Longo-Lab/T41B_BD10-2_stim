@@ -330,8 +330,7 @@ server <- function(input, output, session) {
         results <- page_data()[['results']][[cl]]
         l2fc_correlations <- page_data()[['l2fc_correlations']][[cl]]
         gprofilers <- page_data()[['gprofilers']][[cl]]
-        results <- page_data()[['results']][[cl]]
-        
+
         tabItem(
           tabName = str_c('page_', cl),
           class = if_else(cl == subclass, 'active', ''),

@@ -21,7 +21,7 @@ sbatch -J T41B_BD10-2_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
 # save_dashboard_files.R
 sbatch -J T41B_BD10-2_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_save_dashboard_files_%x.log \
-  --wrap "ml R/4.2.2; save_dashboard_files.R $nameset"
+  --wrap "ml R/4.2.2; save_dashboard_files.R -n $nameset -g APPL/S -d BD10-2 -i Gene_id -u"
 
 # round_num="R1"
 # nameset="T41B_BD10-2_unstim"
@@ -44,7 +44,7 @@ sbatch -J T41B_BD10-2_unstim --mem=5G -c 2 -t 01:00:00 -p interactive \
 # save_dashboard_files.R
 sbatch -J T41B_BD10-2_unstim --mem=5G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_save_dashboard_files_%x.log \
-  --wrap "ml R/4.2.2; save_dashboard_files.R $nameset"
+  --wrap "ml R/4.2.2; save_dashboard_files.R -n $nameset -g APPL/S -d BD10-2 -i Gene_id -u"
 
 # round_num="R1"
 # nameset="T41B_stim"
@@ -68,4 +68,4 @@ sbatch -J T41B_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
 # save_dashboard_files.R
 sbatch -J T41B_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_save_dashboard_files_%x.log \
-  --wrap "ml R/4.2.2; save_dashboard_files.R $nameset"
+  --wrap "ml R/4.2.2; save_dashboard_files.R -n $nameset -g APPL/S -d BD10-2 -i Gene_id -a Tg-VvsWt-V,Tg-DvsWt-V,Tg-DvsTg-V,Wt-DvsWt-V"
