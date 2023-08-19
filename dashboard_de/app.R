@@ -32,7 +32,7 @@ add_count <- function(x, s1 = ',', s2 = '|') {
   str_c(str_pad(str_count(x, s1) + 1, width = 2, side = 'left', pad = '0'), x, sep = s2)
 }
 
-get_tab_box <- function(typeout, cluster, results, l2fc_correlations, gprofilers) {
+get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
   print(str_c('get_tab_box() for ', cluster, '...'))
   
   # Biodomain modules
@@ -335,7 +335,7 @@ server <- function(input, output, session) {
           tabName = str_c('page_', cl),
           class = if_else(cl == subclass, 'active', ''),
           fluidRow(
-            get_tab_box(subclass, cl, results, l2fc_correlations, gprofilers)
+            get_tab_box(subclass, cl, l2fc_correlations, gprofilers)
           ),
           fluidRow(
             tabBox(
@@ -375,7 +375,7 @@ server <- function(input, output, session) {
                       search = list(regex = T)
                     )
                   ) %>% 
-                  formatRound(grep('log2', names(results), value = T), 3) %>%
+                  formatRound(grep('log2|L2FC', names(results), value = T), 3) %>%
                   formatSignif(grep('adj|val', names(results), value = T), 3) %>% 
                   DT::renderDataTable()
               ),
