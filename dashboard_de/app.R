@@ -20,7 +20,7 @@ is_sc <- F
 projs <- c(
   'T41B BD10-2 (stim)' = 'T41B_BD10-2_stim',
   'T41B BD10-2 (unstim)' = 'T41B_BD10-2_unstim',
-  'T41B stim' = 'T41B_stim'
+  'T41B TBS' = 'T41B_TBS'
 )
 
 
