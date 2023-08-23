@@ -29,7 +29,7 @@ add_count <- function(x, s1 = ',', s2 = '|') {
   str_c(str_pad(str_count(x, s1) + 1, width = 2, side = 'left', pad = '0'), x, sep = s2)
 }
 
-get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
+get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, go_enrichments) {
   print(str_c('get_tab_box() for ', cluster, '...'))
   
   # Biodomain modules
@@ -148,8 +148,13 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
     )
   }) %>% flatten()
   
+  # GO terms enrichment
+  go_terms_bp <- list(tabPanel('GO terms enrichment (BP)', renderPlot(go_enrichments[['BP']])))
+  go_terms_mf <- list(tabPanel('GO terms enrichment (MF)', renderPlot(go_enrichments[['MF']])))
+  go_terms_cc <- list(tabPanel('GO terms enrichment (CC)', renderPlot(go_enrichments[['CC']])))
+  
   # tabBox object
-  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr_wtv, l2fc_corr_tgd, gprofilers))
+  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr_wtv, l2fc_corr_tgd, gprofilers, go_terms_bp, go_terms_mf, go_terms_cc))
   m$attribs$class <- 'col-sm-12'
   
   m
@@ -200,6 +205,7 @@ server <- function(input, output, session) {
       'results' = results,
       'l2fc_correlations' = l2fc_correlations, 
       'gprofilers' = gprofilers,
+      'go_enrichments' = go_enrichments,
       'meta' = meta
     )
   })
@@ -315,12 +321,13 @@ server <- function(input, output, session) {
         results <- page_data()[['results']][[cl]]
         l2fc_correlations <- page_data()[['l2fc_correlations']][[cl]]
         gprofilers <- page_data()[['gprofilers']][[cl]]
+        go_enrichments <- page_data()[['go_enrichments']][[cl]]
 
         tabItem(
           tabName = str_c('page_', cl),
           class = if_else(cl == subclass, 'active', ''),
           fluidRow(
-            get_tab_box(subclass, cl, l2fc_correlations, gprofilers)
+            get_tab_box(subclass, cl, l2fc_correlations, gprofilers, go_enrichments)
           ),
           fluidRow(
             tabBox(
