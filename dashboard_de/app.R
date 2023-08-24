@@ -45,7 +45,11 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
   )
   names(imgs) <- c('Treat-AD', 'Tmt-AD', 'Mostafavi, et al.', 'Milind, et al.', 'Wan, et al.')
   
-  biodomain_modules <- lapply(names(imgs), function(i) { tabPanel(i, img(src = imgs[[i]])) })
+  biodomain_modules <- list(tabPanel(
+    'Modules enrichment', 
+    do.call(div, c(lapply(names(imgs), function(i) { a(`data-value` = imgs[[i]], class = ifelse(i == 'Treat-AD', 'active', ''), i) }), id = 'biodomains')),
+    img(src = imgs[['Treat-AD']])
+  ))
   
   # Biodomain correlation
   img_corr <- str_c(
@@ -179,7 +183,8 @@ ui <- dashboardPage(
   ),
   body = dashboardBody(
     tags$head(
-      tags$link(rel = 'stylesheet', type = 'text/css', href = 'style.css')
+      tags$link(rel = 'stylesheet', type = 'text/css', href = 'style.css'),
+      tags$script(src = 'script.js')
     ),
     useWaiter(),
     uiOutput('page_content')

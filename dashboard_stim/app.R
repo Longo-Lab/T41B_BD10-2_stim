@@ -29,7 +29,7 @@ add_count <- function(x, s1 = ',', s2 = '|') {
   str_c(str_pad(str_count(x, s1) + 1, width = 2, side = 'left', pad = '0'), x, sep = s2)
 }
 
-get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, go_enrichments) {
+get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
   print(str_c('get_tab_box() for ', cluster, '...'))
   
   # Biodomain modules
@@ -42,7 +42,11 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, go_enri
   )
   names(imgs) <- c('Treat-AD', 'Tmt-AD', 'Mostafavi, et al.', 'Milind, et al.', 'Wan, et al.')
   
-  biodomain_modules <- lapply(names(imgs), function(i) { tabPanel(i, img(src = imgs[[i]])) })
+  biodomain_modules <- list(tabPanel(
+    'Modules enrichment', 
+    do.call(div, c(lapply(names(imgs), function(i) { a(`data-value` = imgs[[i]], class = ifelse(i == 'Treat-AD', 'active', ''), i) }), id = 'biodomains')),
+    img(src = imgs[['Treat-AD']])
+  ))
   
   # Biodomain correlation
   img_corr <- str_c(
@@ -149,12 +153,19 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, go_enri
   }) %>% flatten()
   
   # GO terms enrichment
-  go_terms_bp <- list(tabPanel('GO terms enrichment (BP)', renderPlot(go_enrichments[['BP']])))
-  go_terms_mf <- list(tabPanel('GO terms enrichment (MF)', renderPlot(go_enrichments[['MF']])))
-  go_terms_cc <- list(tabPanel('GO terms enrichment (CC)', renderPlot(go_enrichments[['CC']])))
+  go_terms <- list(tabPanel(
+    'GO terms enrichment',
+    div(
+      selectInput('go_term', label = 'GO terms category', choices = c('GO:BP', 'GO:MF', 'GO:CC')),
+      numericInput('top_n_terms', 'Top N terms', value = 5, min = 5, max = 20),
+      sliderInput('term_size_range', label = 'Term size filter', value = c(0, 2000), min = 0, max = 2000),
+      textOutput('term_size_text') %>% tagAppendAttributes(style = 'font-weight: 600;')
+    ) %>% tagAppendAttributes(style = 'width: 300px;'),
+    plotOutput('go_terms_plot', height = 800) %>% tagAppendAttributes(style = 'margin-left: 100px;')
+  ))
   
   # tabBox object
-  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr_wtv, l2fc_corr_tgd, gprofilers, go_terms_bp, go_terms_mf, go_terms_cc))
+  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr_wtv, l2fc_corr_tgd, gprofilers, go_terms))
   m$attribs$class <- 'col-sm-12'
   
   m
@@ -178,7 +189,8 @@ ui <- dashboardPage(
   ),
   body = dashboardBody(
     tags$head(
-      tags$link(rel = 'stylesheet', type = 'text/css', href = 'style.css')
+      tags$link(rel = 'stylesheet', type = 'text/css', href = 'style.css'),
+      tags$script(src = 'script.js')
     ),
     useWaiter(),
     uiOutput('page_content')
@@ -205,7 +217,7 @@ server <- function(input, output, session) {
       'results' = results,
       'l2fc_correlations' = l2fc_correlations, 
       'gprofilers' = gprofilers,
-      'go_enrichments' = go_enrichments,
+      'go_terms' = go_terms,
       'meta' = meta
     )
   })
@@ -321,13 +333,12 @@ server <- function(input, output, session) {
         results <- page_data()[['results']][[cl]]
         l2fc_correlations <- page_data()[['l2fc_correlations']][[cl]]
         gprofilers <- page_data()[['gprofilers']][[cl]]
-        go_enrichments <- page_data()[['go_enrichments']][[cl]]
 
         tabItem(
           tabName = str_c('page_', cl),
           class = if_else(cl == subclass, 'active', ''),
           fluidRow(
-            get_tab_box(subclass, cl, l2fc_correlations, gprofilers, go_enrichments)
+            get_tab_box(subclass, cl, l2fc_correlations, gprofilers)
           ),
           fluidRow(
             tabBox(
@@ -367,7 +378,7 @@ server <- function(input, output, session) {
                       search = list(regex = T)
                     )
                   ) %>% 
-                  formatRound(grep('log2', names(results), value = T), 3) %>%
+                  formatRound(grep('log2|L2FC', names(results), value = T), 3) %>%
                   formatSignif(grep('adj|val', names(results), value = T), 3) %>% 
                   DT::renderDataTable()
               ),
@@ -393,6 +404,58 @@ server <- function(input, output, session) {
     )
     
     do.call(tabItems, pages)
+  })
+  
+  # Render GO terms enrichment
+  output$term_size_text <- renderText({
+    paste0('Showing top ', input$top_n_terms, ' up and down-regulated ', input$go_term, ' terms in each experimental group. Including only terms whose size is between ', input$term_size_range[[1]], ' and ', input$term_size_range[[2]], '.')
+  })
+  
+  output$go_terms_plot <- renderPlot({
+    go_terms <- page_data()[['go_terms']][[1]]
+    geno <- page_data()[['meta']][['geno']]
+    drug <- page_data()[['meta']][['drug']]
+
+    go_terms <- go_terms[input$term_size_range[[1]] < term_size & term_size < input$term_size_range[[2]]]
+
+    go_terms <- go_terms[source == input$go_term]  # subset terms for specific category
+
+    top_terms <- go_terms[, head(.SD, input$top_n_terms), by = c('query', 'Tiss')][, term_name]
+
+    go_terms <- go_terms[term_name %in% top_terms] %>%
+      complete(Tiss, term_name, fill = list(LogBH = 0)) %>%
+      data.table()
+
+    term_order <- go_terms[go_terms[, .I[which.max(abs(LogBH))], by=term_name]$V1]
+    term_down <- term_order[order(LogBH)][LogBH < 0]$term_name
+    term_up <- term_order[order(-LogBH)][LogBH > 0]$term_name
+    term_order <- c(term_down, term_up)
+
+    go_terms$term_name = factor(go_terms$term_name, levels=rev(term_order))
+    go_terms$Tiss = factor(go_terms$Tiss, levels=rev(c('Wt', geno, str_c(geno, ' + ', drug))))
+
+    ggplot(go_terms, aes(x = LogBH, y = term_name, fill = Tiss)) +
+      geom_bar(stat = 'identity', position = 'dodge') +
+      guides(fill = guide_legend(reverse = T)) +
+      geom_vline(xintercept = 0) +
+      scale_fill_brewer(type = 'qual', palette = 'Set2') +
+      labs(fill = 'TBS exp. group') +
+      xlab(expression('Downregulated' %<-% '-Log10 FDR' %->% 'Upregulated')) +
+      geom_text(
+        aes(x = 0, label = term_name),
+        hjust = 0,
+        nudge_x = 0.3,
+        size = 3.5,
+        color = ifelse(go_terms$term_name %in% term_up, '#f0f0f0', 'black')
+      ) +
+      theme(
+        panel.background = element_rect(fill = 'white'),
+        panel.grid.major.x = element_line(color = '#A8BAC4', size = 0.3),
+        axis.ticks.length = unit(0, 'mm'),
+        axis.title.y = element_blank(),
+        axis.line.y.left = element_line(color = '#A8BAC4'),
+        axis.text.y = element_blank()
+      )
   })
 }
 
