@@ -59,8 +59,11 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
   biodomain_correlation <- list(tabPanel('Treat-AD correlation', img(src = img_corr)))
   
   # L2FC correlation
-  l2fc_corr_wtv <- list(tabPanel('L2FC correlation (WtV)', l2fc_correlations[['WtV']]))
-  l2fc_corr_tgd <- list(tabPanel('L2FC correlation (TgD)', l2fc_correlations[['TgD']]))
+  l2fc_corr <- list(tabPanel(
+    'L2FC correlation',
+    radioButtons('l2fc_comparison', 'Comparison', c('WtV vs. (TgV - WtV)' = 'WtV', 'TgD vs. (TgV - TgD)' = 'TgD')),
+    uiOutput('l2fc_corr')
+  ))
   
   # gProfiler2
   gp_names <- c('LTP-dependent', 'Shared')
@@ -165,7 +168,7 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
   ))
   
   # tabBox object
-  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr_wtv, l2fc_corr_tgd, gprofilers, go_terms))
+  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr, gprofilers, go_terms))
   m$attribs$class <- 'col-sm-12'
   
   m
@@ -404,6 +407,12 @@ server <- function(input, output, session) {
     )
     
     do.call(tabItems, pages)
+  })
+  
+  # Render L2FC correlation
+  output$l2fc_corr <- renderUI({
+    l2fc_correlations <- page_data()[['l2fc_correlations']][[1]]
+    l2fc_correlations[[input$l2fc_comparison]]
   })
   
   # Render GO terms enrichment
