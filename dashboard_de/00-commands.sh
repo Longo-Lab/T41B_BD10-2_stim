@@ -68,4 +68,4 @@ sbatch -J T41B_TBS --mem=5G -c 2 -t 01:00:00 -p interactive \
 # save_dashboard_files.R
 sbatch -J T41B_TBS --mem=5G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_save_dashboard_files_%x.log \
-  --wrap "ml R/4.2.2; save_dashboard_files.R -n $nameset -g APPL/S -d BD10-2 -i Gene_id -a Tg-VvsWt-V,Tg-DvsTg-V,Tg-DvsWt-V,Wt-DvsWt-V"
+  --wrap "ml R/4.2.2; save_dashboard_files.R -n $nameset -g APPL/S -d TBS -i Gene_id -a Tg-VvsWt-V,Tg-DvsTg-V,Tg-DvsWt-V,Wt-DvsWt-V"

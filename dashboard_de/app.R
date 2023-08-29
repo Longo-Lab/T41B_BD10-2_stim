@@ -179,7 +179,8 @@ ui <- dashboardPage(
     div(
       selectInput('proj', label = 'Select:', choices = projs),
     ),
-    uiOutput('page_tab')
+    uiOutput('page_tab'),
+    uiOutput('page_legend')
   ),
   body = dashboardBody(
     tags$head(
@@ -243,6 +244,17 @@ server <- function(input, output, session) {
     do.call(sidebarMenu, pages)
   })
   
+  output$page_legend <- renderUI({
+    geno <- page_data()[['meta']][['geno']]
+    drug <- page_data()[['meta']][['drug']]
+    
+    div(
+      p(span(str_c(geno, '_VEH vs. WT_VEH')), str_c('= ', geno, ' Effect')),
+      p(span(str_c(geno, '_', drug, ' vs. WT_VEH')), str_c('= ', geno, '_', drug, ' Effect')),
+      p(span(str_c(geno, '_', drug, ' vs. ', geno, '_VEH')), str_c('= ', drug, ' Effect'))
+    )
+  })
+  
   # Render tabs content
   output$page_content <- renderUI({
     cls <- names(page_data()[['results']])
@@ -257,9 +269,9 @@ server <- function(input, output, session) {
     include_wt <- ifelse(length(analyses) == 4, T, F)
     
     analyses_cols <- list(
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#f3f7eb;border-bottom:none;text-align: center;', geno),
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#fdf2f1;border-bottom:none;text-align: center;', str_c(geno, drug, sep = '_')),
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#eef8f9;border-bottom:none;text-align: center;', drug)
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#f3f7eb;border-bottom:none;text-align: center;', title = str_c(geno, ' Effect'), str_c(geno, '_VEH vs. WT_VEH')),
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#fdf2f1;border-bottom:none;text-align: center;', title = str_c(geno, ' + ', drug, ' Effect'), str_c(geno, '_', drug, ' vs. WT_VEH')),
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#eef8f9;border-bottom:none;text-align: center;', title = str_c(drug, ' Effect'), str_c(geno, '_', drug, ' vs. ', geno, '_VEH'))
     )
     
     if (include_wt) {
@@ -357,7 +369,6 @@ server <- function(input, output, session) {
                     mostafavi = add_count(mostafavi),
                     milind = add_count(milind),
                     wan = add_count(wan),
-                    Family = str_c(Family, 'all'),
                     chembl = str_c(add_count(chembl_protein_labels, '\\|', '~'), if_else(is_mouse_chembl, 'Mouse', 'Human'), sep = '~')
                   ) %>% 
                   dplyr::select(-gene_biotype, -chromosome_name, -is_mouse_chembl, -chembl_protein_labels) %>% 
