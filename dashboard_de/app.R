@@ -244,14 +244,15 @@ server <- function(input, output, session) {
     do.call(sidebarMenu, pages)
   })
   
+  # Render sidebar text
   output$page_legend <- renderUI({
     geno <- page_data()[['meta']][['geno']]
     drug <- page_data()[['meta']][['drug']]
     
     div(
-      p(span(str_c(geno, '_VEH vs. WT_VEH')), str_c('= ', geno, ' Effect')),
-      p(span(str_c(geno, '_', drug, ' vs. WT_VEH')), str_c('= ', geno, '_', drug, ' Effect')),
-      p(span(str_c(geno, '_', drug, ' vs. ', geno, '_VEH')), str_c('= ', drug, ' Effect'))
+      p(span(str_c(geno, '_VEH vs. WT_VEH')), str_c('= ', geno, ' effect')),
+      p(span(str_c(geno, '_', drug, ' vs. WT_VEH')), str_c('= ', geno, '_', drug, ' effect')),
+      p(span(str_c(geno, '_', drug, ' vs. ', geno, '_VEH')), str_c('= ', drug, ' effect'))
     )
   })
   
@@ -269,13 +270,13 @@ server <- function(input, output, session) {
     include_wt <- ifelse(length(analyses) == 4, T, F)
     
     analyses_cols <- list(
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#f3f7eb;border-bottom:none;text-align: center;', title = str_c(geno, ' Effect'), str_c(geno, '_VEH vs. WT_VEH')),
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#fdf2f1;border-bottom:none;text-align: center;', title = str_c(geno, ' + ', drug, ' Effect'), str_c(geno, '_', drug, ' vs. WT_VEH')),
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#eef8f9;border-bottom:none;text-align: center;', title = str_c(drug, ' Effect'), str_c(geno, '_', drug, ' vs. ', geno, '_VEH'))
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#f3f7eb;border-bottom:none;text-align: center;', title = str_c(geno, ' effect'), str_c(geno, '_VEH vs. WT_VEH')),
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#fdf2f1;border-bottom:none;text-align: center;', title = str_c(geno, ' + ', drug, ' effect'), str_c(geno, '_', drug, ' vs. WT_VEH')),
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#eef8f9;border-bottom:none;text-align: center;', title = str_c(drug, ' effect'), str_c(geno, '_', drug, ' vs. ', geno, '_VEH'))
     )
     
     if (include_wt) {
-      analyses_cols[[4]] <- htmltools::tags$th(colspan = length(de_names), style = 'background-color:#f9f2ff;border-bottom:none;text-align: center;', str_c(drug, 'wt', sep = '_'))
+      analyses_cols[[4]] <- htmltools::tags$th(colspan = length(de_names), style = 'background-color:#f9f2ff;border-bottom:none;text-align: center;', title = str_c(drug, ' effect in WT group'), str_c('WT_', drug, ' vs. WT_VEH'))
     }
     
     sketch <- htmltools::withTags(table(
@@ -323,9 +324,6 @@ server <- function(input, output, session) {
       }
       
       // TF columns
-      $('td:eq(' + (m + 5) + ')', row)
-        .html(data[m + 5] === null ? data[m + 5] : data[m + 5].slice(0, -3));
-        
       var c = '';
       if (data[m + 6] !== null) {
         var info = data[m + 6].split('~'),
