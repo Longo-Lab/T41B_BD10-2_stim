@@ -263,9 +263,9 @@ server <- function(input, output, session) {
     footnote <- page_data()[['meta']][['footnote']]
     
     analyses_cols <- list(
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#f3f7eb;border-bottom:none;text-align: center;', 'Wt'),
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#fdf2f1;border-bottom:none;text-align: center;', geno),
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#eef8f9;border-bottom:none;text-align: center;', str_c(geno, drug, sep = '_'))
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#f3f7eb;border-bottom:none;text-align: center;', title = 'Stimulation effect in WT group', 'WT'),
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#fdf2f1;border-bottom:none;text-align: center;', title = str_c('Stimulation effect in ', geno, ' group'), geno),
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#eef8f9;border-bottom:none;text-align: center;', title = str_c('Stimulation effect in ', geno, '_', drug, ' group'), str_c(geno, drug, sep = '_'))
     )
     
     sketch <- htmltools::withTags(table(
@@ -312,9 +312,6 @@ server <- function(input, output, session) {
       }
       
       // TF columns
-      $('td:eq(' + (m + 5) + ')', row)
-        .html(data[m + 5] === null ? data[m + 5] : data[m + 5].slice(0, -3));
-        
       var c = '';
       if (data[m + 6] !== null) {
         var info = data[m + 6].split('~'),
@@ -358,7 +355,6 @@ server <- function(input, output, session) {
                     mostafavi = add_count(mostafavi),
                     milind = add_count(milind),
                     wan = add_count(wan),
-                    Family = str_c(Family, 'all'),
                     chembl = str_c(add_count(chembl_protein_labels, '\\|', '~'), if_else(is_mouse_chembl, 'Mouse', 'Human'), sep = '~')
                   ) %>% 
                   dplyr::select(-gene_biotype, -chromosome_name, -is_mouse_chembl, -chembl_protein_labels) %>% 
