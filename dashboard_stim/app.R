@@ -263,9 +263,9 @@ server <- function(input, output, session) {
     footnote <- page_data()[['meta']][['footnote']]
     
     analyses_cols <- list(
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#f3f7eb;border-bottom:none;text-align: center;', title = 'Stimulation effect in WT group', 'WT'),
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#fdf2f1;border-bottom:none;text-align: center;', title = str_c('Stimulation effect in ', geno, ' group'), geno),
-      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#eef8f9;border-bottom:none;text-align: center;', title = str_c('Stimulation effect in ', geno, '_', drug, ' group'), str_c(geno, drug, sep = '_'))
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#f3f7eb;border-bottom:none;text-align: center;', title = 'Stimulation effect in WT group', 'WT_VEH_TBS vs WT_VEH'),
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#fdf2f1;border-bottom:none;text-align: center;', title = str_c('Stimulation effect in ', geno, ' group'), str_c(geno, '_VEH_TBS vs ', geno, '_VEH')),
+      htmltools::tags$th(colspan = length(de_names), style = 'background-color:#eef8f9;border-bottom:none;text-align: center;padding: 4px 15px;', title = str_c('Stimulation effect in ', geno, '_', drug, ' group'), str_c(geno, '_', drug, '_TBS vs ', geno, '_', drug))
     )
     
     sketch <- htmltools::withTags(table(

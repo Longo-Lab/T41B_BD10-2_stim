@@ -8,6 +8,7 @@
 # gzip -c ../res.2.csv > "${nameset}/${round_num}.${nameset}.RNA.Tg-VvsWt-V.csv.gz"
 # gzip -c ../res.12.csv > "${nameset}/${round_num}.${nameset}.RNA.Tg-DvsWt-V.csv.gz"
 # gzip -c ../res.9.csv > "${nameset}/${round_num}.${nameset}.RNA.Tg-DvsTg-V.csv.gz"
+# gzip -c ../res.??.csv > "${nameset}/${round_num}.${nameset}.RNA.Wt-DvsWt-V.csv.gz"
 
 # biodomain_correlation.R
 sbatch -J T41B_BD10-2_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
@@ -32,6 +33,7 @@ sbatch -J T41B_BD10-2_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
 # gzip -c ../res.1.csv > "${nameset}/${round_num}.${nameset}.RNA.Tg-VvsWt-V.csv.gz"
 # gzip -c ../res.11.csv > "${nameset}/${round_num}.${nameset}.RNA.Tg-DvsWt-V.csv.gz"
 # gzip -c ../res.8.csv > "${nameset}/${round_num}.${nameset}.RNA.Tg-DvsTg-V.csv.gz"
+# gzip -c ../res.??.csv > "${nameset}/${round_num}.${nameset}.RNA.Wt-DvsWt-V.csv.gz"
 
 # biodomain_correlation.R
 sbatch -J T41B_BD10-2_unstim --mem=5G -c 2 -t 01:00:00 -p interactive \

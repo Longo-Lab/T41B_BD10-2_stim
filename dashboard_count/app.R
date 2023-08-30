@@ -1,7 +1,7 @@
 ####################################################################################################
 ###
-###     Shiny app for P75 project - Amira Latif Hernandez
-###           Shiny developed by : Patricia Moran Losada pmlosada@stanford.edu
+###     Shiny app for T41B_BD10-2_Stim project - Amira Latif Hernandez
+###           Shiny developed by : Patricia Moran Losada pmlosada@stanford.edu, deployed but Robert R Butler III
 ###                                Please if you use this code add my name as a co-authour of your 
 ###                                research study. 
 ####################################################################################################
@@ -33,8 +33,8 @@ library(grid)
 
 
 
-load("./p75_RSEM_Quant.genes.tpm.RData")
-metadata <- read.csv(file="./metadata2.csv",header = TRUE, stringsAsFactors = FALSE,row.names = 1)
+load("T41B_BD10_2_RSEM_Quant.genes.tpm.RData")
+metadata <- read.csv(file="metadata_samples_relabel.csv",header = TRUE, stringsAsFactors = FALSE,row.names = 1)
 gene_list <- read.csv(file="gene_list.csv",header = TRUE, stringsAsFactors = FALSE,row.names = 1)
 
 
@@ -45,7 +45,7 @@ ui <- fluidPage(
   HTML('<meta name="viewport" content="width=1024">'),
   
   theme=shinytheme("sandstone"),
-  navbarPage("P75", inverse=FALSE, position = "fixed-top" , 
+  navbarPage("T41B BD10-2 Stimulation", inverse=FALSE, position = "fixed-top" , 
                   tabPanel("Bulk RNA-seq Visualization",
                       sidebarLayout(
                         sidebarPanel( 
@@ -56,14 +56,14 @@ ui <- fluidPage(
                           br(),br(),br(),
                           selectInput("Gene", list(h4("Gene:")), choices=c("Trem2"),selected="Trem2",multiple =FALSE ),
                           p("*Type your gene of interest (only first 1000 genes displayed)",align = "left",style = "font-size:10px"),
-                          prettyCheckboxGroup("Genotype", label = h4("Genotype"),choices = c("WT","TG"), 
-                                              selected = c("WT","TG"),inline   = FALSE, shape = c("curve"), 
+                          prettyCheckboxGroup("Genotype", label = h4("Genotype"),choices = c("WT","APPL/S"), 
+                                              selected = c("WT","APPL/S"),inline   = FALSE, shape = c("curve"), 
                                               thick=FALSE, animation=c("pulse"),fill=FALSE),
-                          prettyCheckboxGroup("Treatment", label = h4("Treatment"),choices = c("VEH","C31"), 
-                                              selected = c("VEH","C31"),inline   = FALSE, shape = c("curve"), 
+                          prettyCheckboxGroup("Treatment", label = h4("Treatment"),choices = c("VEH","BD10-2"), 
+                                              selected = c("VEH","BD10-2"),inline   = FALSE, shape = c("curve"), 
                                               thick=FALSE, animation=c("pulse"),fill=FALSE),
-                          prettyCheckboxGroup("TBS", label = h4("TBS"),choices = c("TBS", "noTBS"), 
-                                              selected = c("TBS","noTBS"),inline   = FALSE, shape = c("curve"), 
+                          prettyCheckboxGroup("TBS", label = h4("TBS"),choices = c("STIM", "no STIM"), 
+                                              selected = c("STIM","noSTIM"),inline   = FALSE, shape = c("curve"), 
                                               thick=FALSE, animation=c("pulse"),fill=FALSE),
                           radioButtons("Graph", list(h4(icon("chart-bar"),"Graph type")),c("Boxplot" = "boxplot","Violin" = "violin")),
                           radioButtons("Scale", list(h4(icon("chart-bar"), "Scale")),c("Linear"="linear","Log"="log"),selected=c("linear"))
@@ -94,7 +94,7 @@ ui <- fluidPage(
   ),
   
   navbarPage(inverse=FALSE, position = "fixed-bottom",
-             p(a("Please cite:",href=""),align = "justify",style = "font-size:11px"))
+             p(a("Dashboard by Patricia Moran Losada. \nPlease cite:",href=""),align = "justify",style = "font-size:12px"))
 )
              
 
@@ -106,7 +106,8 @@ server <- function(input, output,session) {
 
            data<- reactive({
              
-             gene <- gene_list[which(gene_list$GeneSymbol %in% input$Gene),]
+             # gene <- gene_list[which(gene_list$GeneSymbol %in% input$Gene),]
+             gene <- gene_list %>% filter(GeneSymbol %in% input$Gene)
              dataSelected <- as.data.frame(tpm[which(rownames(tpm) %in% rownames(gene)),])
              colnames(dataSelected)[1] <- "TPM"
              dataSelected$SampleID <- rownames(dataSelected)
@@ -117,13 +118,13 @@ server <- function(input, output,session) {
              metadataSelected <- metadataSelected[which(metadataSelected$Treatment %in% input$Treatment),]
              metadataSelected <- metadataSelected[which(metadataSelected$TBS %in% input$TBS),]
              
-             validate(
+             shiny::validate(
                need(input$Genotype != "", "Please select the Genotype ")
              )
-             validate(
+             shiny::validate(
                need(input$Treatment != "", "Please select a Treatment")
              )
-             validate(
+             shiny::validate(
                need(input$TBS != "", "Please select TBS option")
              )
              
