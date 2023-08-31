@@ -54,7 +54,7 @@ ui <- fluidPage(
                           }"),
                           width=2,
                           br(),br(),br(),
-                          selectInput("Gene", list(h4("Gene:")), choices=c("Trem2"),selected="Trem2",multiple =FALSE ),
+                          selectInput("Gene", list(h4("Gene:")), choices=c("C3"),selected="C3",multiple =FALSE ),
                           p("*Type your gene of interest (only first 1000 genes displayed)",align = "left",style = "font-size:10px"),
                           prettyCheckboxGroup("Genotype", label = h4("Genotype"),choices = c("WT","APPL/S"), 
                                               selected = c("WT","APPL/S"),inline   = FALSE, shape = c("curve"), 
@@ -62,7 +62,7 @@ ui <- fluidPage(
                           prettyCheckboxGroup("Treatment", label = h4("Treatment"),choices = c("VEH","BD10-2"), 
                                               selected = c("VEH","BD10-2"),inline   = FALSE, shape = c("curve"), 
                                               thick=FALSE, animation=c("pulse"),fill=FALSE),
-                          prettyCheckboxGroup("TBS", label = h4("TBS"),choices = c("STIM", "no STIM"), 
+                          prettyCheckboxGroup("TBS", label = h4("TBS"),choices = c("STIM", "noSTIM"), 
                                               selected = c("STIM","noSTIM"),inline   = FALSE, shape = c("curve"), 
                                               thick=FALSE, animation=c("pulse"),fill=FALSE),
                           radioButtons("Graph", list(h4(icon("chart-bar"),"Graph type")),c("Boxplot" = "boxplot","Violin" = "violin")),
@@ -94,14 +94,14 @@ ui <- fluidPage(
   ),
   
   navbarPage(inverse=FALSE, position = "fixed-bottom",
-             p(a("Dashboard by Patricia Moran Losada. \nPlease cite:",href=""),align = "justify",style = "font-size:12px"))
+             p(a("Dashboard by Patricia Moran Losada.    \nPlease cite: A Latif-Hernandez, T Yang*, RR Butler III*, PM Losada*, P Minhas, H White, KC Tran, H Liu, DA Simmons, V Langness, T Wyss-Coray, & FM Longo\n     A Trkb and Trkc partial agonist prevents synaptic plasticity deficits and elicits activity-dependent synaptic \n and microglial transcriptomic changes in a late-stage Alzheimer’s Disease mouse model. Manuscript in preparation",href=""),align = "justify",style = "font-size:12px"))
 )
              
 
 # Define server logic ----
 server <- function(input, output,session) {
   
-  updateSelectizeInput(session = session, inputId = 'Gene', choices = sort(gene_list$GeneSymbol),selected ="Trem2",  server = TRUE)
+  updateSelectizeInput(session = session, inputId = 'Gene', choices = sort(gene_list$GeneSymbol),selected ="C3",  server = TRUE)
   
 
            data<- reactive({
@@ -110,9 +110,9 @@ server <- function(input, output,session) {
              gene <- gene_list %>% filter(GeneSymbol %in% input$Gene)
              dataSelected <- as.data.frame(tpm[which(rownames(tpm) %in% rownames(gene)),])
              colnames(dataSelected)[1] <- "TPM"
-             dataSelected$SampleID <- rownames(dataSelected)
-             dataSelected <- dataSelected[rownames(metadata),]
-             dataSelected <- cbind(dataSelected,metadata)
+             # dataSelected$SampleID <- rownames(dataSelected)
+             dataSelected <- dataSelected[rownames(metadata),,drop=F]
+             dataSelected <- cbind(dataSelected[,,drop=F],metadata)
              
              metadataSelected <- metadata[which(metadata$Genotype %in% input$Genotype),]
              metadataSelected <- metadataSelected[which(metadataSelected$Treatment %in% input$Treatment),]
@@ -132,6 +132,9 @@ server <- function(input, output,session) {
              
              dataSelected <- dataSelected[which(rownames(dataSelected) %in% samples),]
              
+             # drop the outlier BD10_2_30
+             dataSelected <- dataSelected[rownames(dataSelected) != "BD10_2_30",]
+             
              return(dataSelected)
              })
            
@@ -143,15 +146,15 @@ server <- function(input, output,session) {
              if(input$Graph== "boxplot"){
                bx<-ggplot(df, aes(x=Group,y=(TPM+0.1))) +geom_boxplot(aes(color=Group),  outlier.shape = NA, lwd=0.8)+
                  geom_jitter(aes(color=Group), position=position_jitter(0.1),size=5,alpha = 0.3)+
-                 facet_wrap(.~Genotype, scales = "free_x")+
+                 facet_wrap(.~TBS, scales = "free_x")+
                  theme(axis.text.x = element_text(angle = 45,hjust = 1))}
              else if(input$Graph == "violin"){
                bx<-ggplot(df, aes(x=Group,y=(TPM+0.1), fill= Group)) +
                  geom_violin(trim=FALSE)+geom_boxplot(width=0.1, fill="white")+
-                 facet_wrap(.~Genotype, scales = "free_x")+
+                 facet_wrap(.~TBS, scales = "free_x")+
                  theme(axis.text.x = element_text(angle = 45,hjust = 1))}
              
-             bx<- bx + theme(strip.background = element_rect(color="black", fill="gray80", size=1, linetype="solid"), panel.background = element_blank(),
+             bx<- bx + theme(strip.background = element_rect(color="black", fill="gray80", linewidth=1, linetype="solid"), panel.background = element_blank(),
                      panel.border = element_rect(fill = NA, colour = "black")) +
                theme(text = element_text(size=16),axis.title.y = element_text(vjust = 2))  + ylab("TPM+0.1\n")+
                theme(legend.position="none") +xlab("")
