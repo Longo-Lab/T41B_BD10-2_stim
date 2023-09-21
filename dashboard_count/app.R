@@ -94,7 +94,7 @@ ui <- fluidPage(
   ),
   
   navbarPage(inverse=FALSE, position = "fixed-bottom",
-             p(a("Dashboard by Patricia Moran Losada.    \nPlease cite: A Latif-Hernandez, T Yang*, RR Butler III*, PM Losada*, P Minhas, H White, KC Tran, H Liu, DA Simmons, V Langness, T Wyss-Coray, & FM Longo\n     A Trkb and Trkc partial agonist prevents synaptic plasticity deficits and elicits activity-dependent synaptic \n and microglial transcriptomic changes in a late-stage Alzheimer’s Disease mouse model. Manuscript in preparation",href=""),align = "justify",style = "font-size:12px"))
+             p(a("Dashboard by Patricia Morán Losada.    \nPlease cite: A Latif-Hernandez, T Yang*, RR Butler III*, PM Losada*, P Minhas, H White, KC Tran, H Liu, DA Simmons, V Langness, T Wyss-Coray, & FM Longo\n     A Trkb and Trkc partial agonist prevents synaptic plasticity deficits and elicits activity-dependent synaptic \n and microglial transcriptomic changes in a late-stage Alzheimer’s Disease mouse model. bioRxiv. doi: 10.1101/2023.09.18.558138v1",href="https://www.biorxiv.org/content/10.1101/2023.09.18.558138v1"),align = "justify",style = "font-size:12px"))
 )
              
 

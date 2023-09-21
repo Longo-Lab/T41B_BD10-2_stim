@@ -17,7 +17,7 @@ round_num <- 'R1'
 
 # Project selection
 projs <- c(
-  'T41B stim' = 'T41B_stim'
+  'Stimulation Effect by group' = 'T41B_stim'
 )
 
 
@@ -188,7 +188,8 @@ ui <- dashboardPage(
     div(
       selectInput('proj', label = 'Select:', choices = projs),
     ),
-    uiOutput('page_tab')
+    uiOutput('page_tab'),
+    uiOutput('page_legend')
   ),
   body = dashboardBody(
     tags$head(
@@ -250,6 +251,32 @@ server <- function(input, output, session) {
     )
     
     do.call(sidebarMenu, pages)
+  })
+  
+  # Render sidebar text
+  output$page_legend <- renderUI({
+    geno <- page_data()[['meta']][['geno']]
+    drug <- page_data()[['meta']][['drug']]
+    
+    # veh <- ifelse(drug == 'TBS', 'VEH_', '')
+    
+    div(
+      p(str_c('WT_VEH_TBS vs. WT_VEH'), br(), icon('arrow-right'),
+              span(str_c(' Stimulation effect in WT group'))),
+      br(style="line-height: 5px"),
+      p(str_c(geno, '_VEH_TBS vs. ', geno, '_VEH'), br(), icon('arrow-right'),
+              span(str_c(' Stimulation effect in ', geno, ' group'))),
+      br(style="line-height: 5px"),
+      p(str_c(geno, '_', drug, '_TBS vs. ', geno, '_', drug), br(), icon('arrow-right'),
+              span(str_c(' Stimulation effect in ', geno, '_', drug, ' group'))),
+      br(style="line-height: 5px"),
+      # Wt drug group, uncomment if present
+      # p(str_c('WT_', drug, '_TBS vs. WT_', drug), br(), icon('arrow-right'),
+              # span(str_c(' Stimulation effect in WT_', drug, ' group'))),
+      br(), br(), br(),
+      p(paste("Copyright \U00A9 Longo Lab", format(Sys.Date(), "%Y"))),
+      p("This app made by: ", br(), "Crystal Han & Robert R Butler III")
+    )
   })
   
   # Render tabs content

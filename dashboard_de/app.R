@@ -252,9 +252,21 @@ server <- function(input, output, session) {
     veh <- ifelse(drug == 'TBS', 'VEH_', '')
     
     div(
-      p(span(str_c(geno, '_VEH vs. WT_VEH')), str_c('= ', geno, ' effect')),
-      p(span(str_c(geno, '_', veh, drug, ' vs. WT_VEH')), str_c('= ', geno, '_', drug, ' effect')),
-      p(span(str_c(geno, '_', veh, drug, ' vs. ', geno, '_VEH')), str_c('= ', drug, ' effect'))
+      p(str_c(geno, '_VEH vs. WT_VEH'), br(), icon('arrow-right'),
+              span(str_c(' ', geno, ' effect'))),
+      br(style="line-height: 5px"),
+      p(str_c(geno, '_', veh, drug, ' vs. WT_VEH'), br(), icon('arrow-right'),
+              span(str_c(' ', geno, '_', drug, ' effect'))),
+      br(style="line-height: 5px"),
+      p(str_c(geno, '_', veh, drug, ' vs. ', geno, '_VEH'), br(), 
+              icon('arrow-right'), span(str_c(' ', drug, ' effect'))),
+      br(style="line-height: 5px"),
+      # Wt drug effect group, uncomment if present
+      # p(str_c('WT_', veh, drug, ' vs. WT_VEH'), br(), icon('arrow-right'),
+              # span(str_c(' ', drug, ' effect (in WT)'))),
+      br(), br(), br(),
+      p(paste("Copyright \U00A9 Longo Lab", format(Sys.Date(), "%Y"))),
+      p("This app made by: ", br(), "Crystal Han & Robert R Butler III")
     )
   })
   
