@@ -18,9 +18,9 @@ is_sc <- F
 
 # Project selection
 projs <- c(
-  'T41B BD10-2 (stim)' = 'T41B_BD10-2_stim',
-  'T41B BD10-2 (unstim)' = 'T41B_BD10-2_unstim',
-  'T41B TBS' = 'T41B_TBS'
+  'Drug effect (stim)' = 'T41B_BD10-2_stim',
+  'Drug effect (unstim)' = 'T41B_BD10-2_unstim',
+  'Stim effect' = 'T41B_TBS'
 )
 
 
