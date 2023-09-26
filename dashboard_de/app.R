@@ -18,9 +18,9 @@ is_sc <- F
 
 # Project selection
 projs <- c(
-  'Drug effect (stim)' = 'T41B_BD10-2_stim',
-  'Drug effect (unstim)' = 'T41B_BD10-2_unstim',
-  'Stim effect' = 'T41B_TBS'
+  'Drug effect (stim)' = 'T41B_BD10-2_stim'
+  # 'Drug effect (unstim)' = 'T41B_BD10-2_unstim',
+  # 'Stim effect' = 'T41B_TBS'
 )
 
 
@@ -32,7 +32,7 @@ add_count <- function(x, s1 = ',', s2 = '|') {
   str_c(str_pad(str_count(x, s1) + 1, width = 2, side = 'left', pad = '0'), x, sep = s2)
 }
 
-get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
+get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) {
   print(str_c('get_tab_box() for ', cluster, '...'))
   
   # Biodomain modules
@@ -64,14 +64,13 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
   # L2FC correlation
   l2fc_corr <- list(tabPanel('L2FC correlation', l2fc_correlations))
   
-  
   # gProfiler2
   gp_names <- c('all', 'direct', 'compensatory')
   gp_abbrevs <- c('indir + dir', 'dir', 'comp')
   
   missing_data <- div(style = 'height:300px;', 'No data to show.')
   
-  gprofilers <- lapply(seq(gp_names), function(i) {
+  gprofiler_tabs <- lapply(seq(gp_names), function(i) {
     g <- gprofilers[[gp_names[[i]]]][['g']]
     g_tbl <- gprofilers[[gp_names[[i]]]][['g_tbl']]
     
@@ -88,7 +87,7 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
       s_length <- length(g$meta$query_metadata$queries$s)
     }
     
-    sketch <- htmltools::withTags(table(
+    gprofiler_sketch <- htmltools::withTags(table(
       class = 'display',
       thead(
         tr(
@@ -135,17 +134,17 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
           height = '300px',
           rownames = F,
           filter = 'top',
-          container = sketch,
+          container = gprofiler_sketch,
           class = 'compact',
           escape = F,
           options = list(
             dom = 'tip',
             scrollX = T,
             scrollY = T,
-            rowCallback = JS(render_tooltip),
+            rowCallback = htmlwidgets::JS(render_tooltip),
             columnDefs = list(
               list(targets = c(4, 6), className = 'dt-right'),
-              list(targets = c(5, 7), render = JS(render_sort))
+              list(targets = c(5, 7), render = htmlwidgets::JS(render_sort))
             )
           )
         ) %>%
@@ -158,8 +157,51 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
     )
   }) %>% flatten()
   
+  # GSEA
+  gsea_sketch <- htmltools::withTags(table(
+    class = 'display',
+    thead(
+      tr(
+        th('Biodomain'),
+        th('Source'),
+        th('Term ID'),
+        th('Term name'),
+        th('Term size'),
+        th('NES')
+      )
+    )
+  ))
+  
+  gsea_tabs <- lapply(c('geno', 'drug', 'geno_drug'), function(category) {
+    gsea_tbl <- gseas[[category]][['enr_tbl']] %>%
+      select(Biodomain, ONTOLOGY, ID, Description, setSize, NES) %>%
+      datatable(
+        height = '300px',
+        rownames = F,
+        filter = 'top',
+        container = gsea_sketch,
+        class = 'compact',
+        escape = F,
+        options = list(
+          dom = 'tip',
+          scrollX = T,
+          scrollY = T
+          # rowCallback = htmlwidgets::JS(render_tooltip),
+          # columnDefs = list(
+          #   list(targets = c(4, 6), className = 'dt-right'),
+          #   list(targets = c(5, 7), render = htmlwidgets::JS(render_sort))
+          # )
+        )
+      )
+    
+    list(
+      tabPanel(str_c('GSEA plot (', category, ')'), gseas[[category]][['enr_plt']] %>% plotly::ggplotly(tooltip = 'text')),
+      tabPanel(str_c('GSEA table (', category, ')'), gsea_tbl)
+    )
+  }) %>% flatten()
+  
   # tabBox object
-  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr, gprofilers))
+  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr, gprofiler_tabs, gsea_tabs))
   m$attribs$class <- 'col-sm-12'
   
   m
@@ -213,6 +255,7 @@ server <- function(input, output, session) {
       'results' = results,
       'l2fc_correlations' = l2fc_correlations, 
       'gprofilers' = gprofilers,
+      'gseas' = gseas,
       'meta' = meta
     )
   })
@@ -254,19 +297,16 @@ server <- function(input, output, session) {
     div(
       p(str_c(geno, '_VEH vs. WT_VEH'), br(), icon('arrow-right'),
               span(str_c(' ', geno, ' effect'))),
-      br(style="line-height: 5px"),
       p(str_c(geno, '_', veh, drug, ' vs. WT_VEH'), br(), icon('arrow-right'),
               span(str_c(' ', geno, '_', drug, ' effect'))),
-      br(style="line-height: 5px"),
       p(str_c(geno, '_', veh, drug, ' vs. ', geno, '_VEH'), br(), 
               icon('arrow-right'), span(str_c(' ', drug, ' effect'))),
-      br(style="line-height: 5px"),
       # Wt drug effect group, uncomment if present
       # p(str_c('WT_', veh, drug, ' vs. WT_VEH'), br(), icon('arrow-right'),
               # span(str_c(' ', drug, ' effect (in WT)'))),
-      br(), br(), br(),
-      p(paste("Copyright \U00A9 Longo Lab", format(Sys.Date(), "%Y"))),
-      p("This app made by: ", br(), "Crystal Han & Robert R Butler III")
+      br(),
+      p(paste('Copyright \U00A9 Longo Lab', format(Sys.Date(), '%Y'))),
+      p('This app made by: ', br(), 'Crystal Han & Robert R Butler III')
     )
   })
   
@@ -361,12 +401,13 @@ server <- function(input, output, session) {
         results <- page_data()[['results']][[cl]]
         l2fc_correlations <- page_data()[['l2fc_correlations']][[cl]]
         gprofilers <- page_data()[['gprofilers']][[cl]]
+        gseas <- page_data()[['gseas']][[cl]]
 
         tabItem(
           tabName = str_c('page_', cl),
           class = if_else(cl == subclass, 'active', ''),
           fluidRow(
-            get_tab_box(subclass, cl, l2fc_correlations, gprofilers)
+            get_tab_box(subclass, cl, l2fc_correlations, gprofilers, gseas)
           ),
           fluidRow(
             tabBox(
@@ -393,12 +434,12 @@ server <- function(input, output, session) {
                     container = sketch,
                     class = 'compact',
                     escape = F,
-                    callback = JS("$(\"[data-type='number'] input[type='search']\").attr('placeholder','');"),
+                    callback = htmlwidgets::JS("$(\"[data-type='number'] input[type='search']\").attr('placeholder','');"),
                     options = list(
                       dom = 'tip',
                       scrollX = T,
                       scrollY = T,
-                      rowCallback = JS(render_tooltip),
+                      rowCallback = htmlwidgets::JS(render_tooltip),
                       columnDefs = list(
                         list(targets = modules_col:(modules_col + 6), className = 'dt-right')
                       ),

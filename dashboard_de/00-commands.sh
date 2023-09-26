@@ -21,7 +21,7 @@ sbatch -J T41B_BD10-2_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
   --wrap "ml R/4.2.2; biodomain_enrichment.R -n $nameset -g APPL/S -d BD10-2 -i Gene_id"
 
 # save_dashboard_files.R
-sbatch -J T41B_BD10-2_stim --mem=5G -c 2 -t 01:00:00 -p interactive \
+sbatch -J T41B_BD10-2_stim --mem=50G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_save_dashboard_files_%x.log \
   --wrap "ml R/4.2.2; save_dashboard_files.R -n $nameset -g APPL/S -d BD10-2 -i Gene_id -u"
 
@@ -46,7 +46,7 @@ sbatch -J T41B_BD10-2_unstim --mem=5G -c 2 -t 01:00:00 -p interactive \
   --wrap "ml R/4.2.2; biodomain_enrichment.R -n $nameset -g APPL/S -d BD10-2 -i Gene_id"
 
 # save_dashboard_files.R
-sbatch -J T41B_BD10-2_unstim --mem=5G -c 2 -t 01:00:00 -p interactive \
+sbatch -J T41B_BD10-2_unstim --mem=50G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_save_dashboard_files_%x.log \
   --wrap "ml R/4.2.2; save_dashboard_files.R -n $nameset -g APPL/S -d BD10-2 -i Gene_id -u"
 
@@ -71,6 +71,6 @@ sbatch -J T41B_TBS --mem=5G -c 2 -t 01:00:00 -p interactive \
   --wrap "ml R/4.2.2; biodomain_enrichment.R -n $nameset -g APPL/S -d TBS -i Gene_id"
 
 # save_dashboard_files.R
-sbatch -J T41B_TBS --mem=5G -c 2 -t 01:00:00 -p interactive \
+sbatch -J T41B_TBS --mem=50G -c 2 -t 01:00:00 -p interactive \
   -o %x/%A_save_dashboard_files_%x.log \
   --wrap "ml R/4.2.2; save_dashboard_files.R -n $nameset -g APPL/S -d TBS -i Gene_id -a Tg-VvsWt-V,Tg-DvsTg-V,Tg-DvsWt-V,Wt-DvsWt-V"
