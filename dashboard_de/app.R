@@ -18,9 +18,9 @@ is_sc <- F
 
 # Project selection
 projs <- c(
-  'Drug effect (stim)' = 'T41B_BD10-2_stim'
-  # 'Drug effect (unstim)' = 'T41B_BD10-2_unstim',
-  # 'Stim effect' = 'T41B_TBS'
+  'Drug effect (stim)' = 'T41B_BD10-2_stim',
+  'Drug effect (unstim)' = 'T41B_BD10-2_unstim',
+  'Stim effect' = 'T41B_TBS'
 )
 
 
@@ -131,6 +131,7 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
     if (length(g_tbl) > 1) {
       out_tbl <- g_tbl %>% 
         datatable(
+          selection = 'none',
           height = '300px',
           rownames = F,
           filter = 'top',
@@ -173,9 +174,11 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
   ))
   
   gsea_tabs <- lapply(c('geno', 'drug', 'geno_drug'), function(category) {
+    
     gsea_tbl <- gseas[[category]][['enr_tbl']] %>%
       select(Biodomain, ONTOLOGY, ID, Description, setSize, NES) %>%
       datatable(
+        selection = 'none',
         height = '300px',
         rownames = F,
         filter = 'top',
@@ -186,23 +189,36 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
           dom = 'tip',
           scrollX = T,
           scrollY = T
-          # rowCallback = htmlwidgets::JS(render_tooltip),
-          # columnDefs = list(
-          #   list(targets = c(4, 6), className = 'dt-right'),
-          #   list(targets = c(5, 7), render = htmlwidgets::JS(render_sort))
-          # )
         )
-      )
+      ) %>%
+      formatSignif('NES', 3)
     
     list(
-      tabPanel(str_c('GSEA plot (', category, ')'), gseas[[category]][['enr_plt']] %>% plotly::ggplotly(tooltip = 'text')),
+      tabPanel(str_c('GSEA plot (', category, ')'), gseas[[category]][['enr_plt']]),
       tabPanel(str_c('GSEA table (', category, ')'), gsea_tbl)
     )
   }) %>% flatten()
   
   # tabBox object
-  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr, gprofiler_tabs, gsea_tabs))
+  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr, list(tabPanel('gProfiler', '')), gprofiler_tabs, list(tabPanel('GSEA', '')), gsea_tabs))
   m$attribs$class <- 'col-sm-12'
+  
+  for (idx in c(4, 11)) {
+    m$children[[1]]$children[[1]]$children[[idx]]$attribs$class = 
+    
+    m$children[[1]]$children[[1]]$children[[idx]]$children[[1]]$attribs$`data-toggle` = ''
+    m$children[[1]]$children[[1]]$children[[idx]]$children[[1]]$attribs$`data-bs-toggle` = ''
+  }
+  
+  for (idx in 4:17) {
+    cl <- (m$children[[1]]$children[[1]]$children[[idx]]$children[[1]]$children[[2]] %>% str_split(' '))[[1]][[1]] %>% str_to_lower()
+    
+    if (idx %in% c(4, 11)) {
+      cl <- c(cl, 'tab-group')
+    }
+    
+    m$children[[1]]$children[[1]]$children[[idx]]$attribs$class = cl
+  }
   
   m
 }
