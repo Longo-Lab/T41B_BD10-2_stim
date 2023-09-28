@@ -203,13 +203,13 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
   m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr, list(tabPanel('gProfiler', '')), gprofiler_tabs, list(tabPanel('GSEA', '')), gsea_tabs))
   m$attribs$class <- 'col-sm-12'
   
+  # remove default click event on grouping tabs
   for (idx in c(4, 11)) {
-    m$children[[1]]$children[[1]]$children[[idx]]$attribs$class = 
-    
     m$children[[1]]$children[[1]]$children[[idx]]$children[[1]]$attribs$`data-toggle` = ''
     m$children[[1]]$children[[1]]$children[[idx]]$children[[1]]$attribs$`data-bs-toggle` = ''
   }
   
+  # add class to collapsing tabs for easier selection
   for (idx in 4:17) {
     cl <- (m$children[[1]]$children[[1]]$children[[idx]]$children[[1]]$children[[2]] %>% str_split(' '))[[1]][[1]] %>% str_to_lower()
     
@@ -307,6 +307,7 @@ server <- function(input, output, session) {
   output$page_legend <- renderUI({
     geno <- page_data()[['meta']][['geno']]
     drug <- page_data()[['meta']][['drug']]
+    footnote <- page_data()[['meta']][['footnote']]
     
     veh <- ifelse(drug == 'TBS', 'VEH_', '')
     
@@ -320,6 +321,8 @@ server <- function(input, output, session) {
       # Wt drug effect group, uncomment if present
       # p(str_c('WT_', veh, drug, ' vs. WT_VEH'), br(), icon('arrow-right'),
               # span(str_c(' ', drug, ' effect (in WT)'))),
+      br(),
+      footnote,
       br(),
       p(paste('Copyright \U00A9 Longo Lab', format(Sys.Date(), '%Y'))),
       p('This app made by: ', br(), 'Crystal Han & Robert R Butler III')
@@ -335,8 +338,7 @@ server <- function(input, output, session) {
     de_names <- page_data()[['meta']][['de_names']]
     geno <- page_data()[['meta']][['geno']]
     drug <- page_data()[['meta']][['drug']]
-    footnote <- page_data()[['meta']][['footnote']]
-    
+
     veh <- ifelse(drug == 'TBS', 'VEH_', '')
     
     include_wt <- ifelse(length(analyses) == 4, T, F)
@@ -478,8 +480,7 @@ server <- function(input, output, session) {
                     options = list(
                       dom = 't'
                     )
-                  ),
-                footnote
+                  )
               )
             )
           )
