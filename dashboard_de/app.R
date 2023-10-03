@@ -316,16 +316,16 @@ server <- function(input, output, session) {
               span(str_c(' ', geno, ' effect'))),
       p(str_c(geno, '_', veh, drug, ' vs. WT_VEH'), br(), icon('arrow-right'),
               span(str_c(' ', geno, '_', drug, ' effect'))),
-      p(str_c(geno, '_', veh, drug, ' vs. ', geno, '_VEH'), br(), 
-              icon('arrow-right'), span(str_c(' ', drug, ' effect'))),
+      p(str_c(geno, '_', veh, drug, ' vs. ', geno, '_VEH'), br(), icon('arrow-right'), 
+              span(str_c(' ', drug, ' effect'))),
       # Wt drug effect group, uncomment if present
       # p(str_c('WT_', veh, drug, ' vs. WT_VEH'), br(), icon('arrow-right'),
-              # span(str_c(' ', drug, ' effect (in WT)'))),
+      #         span(str_c(' ', drug, ' effect (in WT)'))),
       br(),
       footnote,
       br(),
-      p(paste('Copyright \U00A9 Longo Lab', format(Sys.Date(), '%Y'))),
-      p('This app made by: ', br(), 'Crystal Han & Robert R Butler III')
+      p(paste('Copyright \U00A9 Longo Lab', format(Sys.Date(), '%Y')))
+      # p('This app made by: ', br(), 'Crystal Han & Robert R Butler III')
     )
   })
   
