@@ -35,23 +35,39 @@ add_count <- function(x, s1 = ',', s2 = '|') {
 get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) {
   print(str_c('get_tab_box() for ', cluster, '...'))
   
-  # Biodomain modules
+  # Transcriptomics modules
   imgs <- str_c(
     file.path(img_dir, typeout, round_num), 
     ifelse(is_sc, str_c(nameset, '.', cluster), cluster),
-    c('TREAT-AD', 'TMT-AD', 'Mostafavi_etal', 'Milind_etal', 'Wan_etal'), 
+    c('TREAT-AD', 'Mostafavi_etal', 'Milind_etal', 'Wan_etal'), 
     'Modules_Up-Down.full.logfdr.png',
     sep = '.'
   )
-  names(imgs) <- c('Treat-AD', 'Tmt-AD', 'Mostafavi, et al.', 'Milind, et al.', 'Wan, et al.')
+  names(imgs) <- c('Treat-AD', 'Mostafavi, et al.', 'Milind, et al.', 'Wan, et al.')
   
-  biodomain_modules <- list(tabPanel(
-    'Modules enrichment', 
-    do.call(div, c(lapply(names(imgs), function(i) { a(`data-value` = imgs[[i]], class = ifelse(i == 'Treat-AD', 'active', ''), i) }), id = 'biodomains')),
+  transcriptomics_modules <- list(tabPanel(
+    'Transcriptomics enrichment', 
+    do.call(div, c(lapply(names(imgs), function(i) { a(`data-value` = imgs[[i]], class = ifelse(i == 'Treat-AD', 'active', ''), i) }), class = 'modules')),
     img(src = imgs[['Treat-AD']])
   ))
   
-  # Biodomain correlation
+  # Proteomics modules
+  imgs <- str_c(
+    file.path(img_dir, typeout, round_num), 
+    ifelse(is_sc, str_c(nameset, '.', cluster), cluster),
+    c('TMT-AD', 'BA6', 'BA37'), 
+    'Modules_Up-Down.full.logfdr.png',
+    sep = '.'
+  )
+  names(imgs) <- c('Tmt-AD', 'BA6 resilience', 'BA37 resilience')
+  
+  proteomics_modules <- list(tabPanel(
+    'Proteomics enrichment', 
+    do.call(div, c(lapply(names(imgs), function(i) { a(`data-value` = imgs[[i]], class = ifelse(i == 'Tmt-AD', 'active', ''), i) }), class = 'modules')),
+    img(src = imgs[['Tmt-AD']])
+  ))
+  
+  # TREAT-AD correlation
   img_corr <- str_c(
     file.path(img_dir, typeout, round_num), 
     ifelse(is_sc, str_c(nameset, '.', cluster), cluster),
@@ -158,6 +174,8 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
     )
   }) %>% flatten()
   
+  gprofiler_tabs <- c(gprofiler_tabs[c(1, 3, 5)], gprofiler_tabs[c(2, 4, 6)])
+  
   # GSEA
   gsea_sketch <- htmltools::withTags(table(
     class = 'display',
@@ -168,6 +186,7 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
         th('Term ID'),
         th('Term name'),
         th('Term size'),
+        th('Pval (adj)'),
         th('NES')
       )
     )
@@ -176,7 +195,7 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
   gsea_tabs <- lapply(c('geno', 'drug', 'geno_drug'), function(category) {
     
     gsea_tbl <- gseas[[category]][['enr_tbl']] %>%
-      select(Biodomain, ONTOLOGY, ID, Description, setSize, NES) %>%
+      dplyr::select(Biodomain, ONTOLOGY, ID, Description, setSize, p.adjust, NES) %>%
       datatable(
         selection = 'none',
         height = '300px',
@@ -199,21 +218,23 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
     )
   }) %>% flatten()
   
+  gsea_tabs <- c(gsea_tabs[c(1, 3, 5)], gsea_tabs[c(2, 4, 6)])
+  
   # tabBox object
-  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr, list(tabPanel('gProfiler', '')), gprofiler_tabs, list(tabPanel('GSEA', '')), gsea_tabs))
+  m <- do.call(tabBox, c(transcriptomics_modules, proteomics_modules, biodomain_correlation, l2fc_corr, list(tabPanel('gProfiler', '')), gprofiler_tabs, list(tabPanel('GSEA', '')), gsea_tabs))
   m$attribs$class <- 'col-sm-12'
   
   # remove default click event on grouping tabs
-  for (idx in c(4, 11)) {
+  for (idx in c(5, 12)) {
     m$children[[1]]$children[[1]]$children[[idx]]$children[[1]]$attribs$`data-toggle` = ''
     m$children[[1]]$children[[1]]$children[[idx]]$children[[1]]$attribs$`data-bs-toggle` = ''
   }
   
   # add class to collapsing tabs for easier selection
-  for (idx in 4:17) {
+  for (idx in 5:18) {
     cl <- (m$children[[1]]$children[[1]]$children[[idx]]$children[[1]]$children[[2]] %>% str_split(' '))[[1]][[1]] %>% str_to_lower()
     
-    if (idx %in% c(4, 11)) {
+    if (idx %in% c(5, 12)) {
       cl <- c(cl, 'tab-group')
     }
     
@@ -231,6 +252,7 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
 ui <- dashboardPage(
   skin = 'black',
   header = dashboardHeader(
+    tags$li('Dashboard by: Robert R Butler III & Crystal Han', br(), 'Please cite:', a('TBD', href = '#'), class = 'dropdown'),
     title = 'T41B + BD10-2 + stim'
   ),
   sidebar = dashboardSidebar(
@@ -325,7 +347,6 @@ server <- function(input, output, session) {
       footnote,
       br(),
       p(paste('Copyright \U00A9 Longo Lab', format(Sys.Date(), '%Y')))
-      # p('This app made by: ', br(), 'Crystal Han & Robert R Butler III')
     )
   })
   
