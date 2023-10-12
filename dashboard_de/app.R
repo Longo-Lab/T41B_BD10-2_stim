@@ -210,7 +210,7 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
           scrollY = T
         )
       ) %>%
-      formatSignif('NES', 3)
+      formatSignif(c('p.adjust', 'NES'), 3)
     
     list(
       tabPanel(str_c('GSEA plot (', category, ')'), gseas[[category]][['enr_plt']]),
