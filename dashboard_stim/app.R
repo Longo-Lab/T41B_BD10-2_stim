@@ -17,7 +17,7 @@ round_num <- 'R1'
 
 # Project selection
 projs <- c(
-  'Stimulation Effect by group' = 'T41B_stim'
+  'Stim effect by group' = 'T41B_stim'
 )
 
 
@@ -32,23 +32,39 @@ add_count <- function(x, s1 = ',', s2 = '|') {
 get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
   print(str_c('get_tab_box() for ', cluster, '...'))
   
-  # Biodomain modules
+  # Transcriptomics modules
   imgs <- str_c(
     file.path(img_dir, typeout, round_num), 
     cluster,
-    c('TREAT-AD', 'TMT-AD', 'Mostafavi_etal', 'Milind_etal', 'Wan_etal'), 
+    c('TREAT-AD', 'Mostafavi_etal', 'Milind_etal', 'Wan_etal'), 
     'Modules_Up-Down.full.logfdr.png',
     sep = '.'
   )
-  names(imgs) <- c('Treat-AD', 'Tmt-AD', 'Mostafavi, et al.', 'Milind, et al.', 'Wan, et al.')
+  names(imgs) <- c('Treat-AD', 'Mostafavi, et al.', 'Milind, et al.', 'Wan, et al.')
   
-  biodomain_modules <- list(tabPanel(
-    'Modules enrichment', 
-    do.call(div, c(lapply(names(imgs), function(i) { a(`data-value` = imgs[[i]], class = ifelse(i == 'Treat-AD', 'active', ''), i) }), id = 'biodomains')),
+  transcriptomics_modules <- list(tabPanel(
+    'Transcriptomics enrichment', 
+    do.call(div, c(lapply(names(imgs), function(i) { a(`data-value` = imgs[[i]], class = ifelse(i == 'Treat-AD', 'active', ''), i) }), class = 'modules')),
     img(src = imgs[['Treat-AD']])
   ))
   
-  # Biodomain correlation
+  # Proteomics modules
+  imgs <- str_c(
+    file.path(img_dir, typeout, round_num), 
+    cluster,
+    c('TMT-AD', 'BA6', 'BA37'), 
+    'Modules_Up-Down.full.logfdr.png',
+    sep = '.'
+  )
+  names(imgs) <- c('Tmt-AD', 'BA6 resilience', 'BA37 resilience')
+  
+  proteomics_modules <- list(tabPanel(
+    'Proteomics enrichment', 
+    do.call(div, c(lapply(names(imgs), function(i) { a(`data-value` = imgs[[i]], class = ifelse(i == 'Tmt-AD', 'active', ''), i) }), class = 'modules')),
+    img(src = imgs[['Tmt-AD']])
+  ))
+  
+  # TREAT-AD correlation
   img_corr <- str_c(
     file.path(img_dir, typeout, round_num), 
     cluster,
@@ -139,10 +155,10 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
             dom = 'tip',
             scrollX = T,
             scrollY = T,
-            rowCallback = JS(render_tooltip),
+            rowCallback = htmlwidgets::JS(render_tooltip),
             columnDefs = list(
               list(targets = c(4, 6), className = 'dt-right'),
-              list(targets = c(5, 7), render = JS(render_sort))
+              list(targets = c(5, 7), render = htmlwidgets::JS(render_sort))
             )
           )
         ) %>%
@@ -168,7 +184,7 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
   ))
   
   # tabBox object
-  m <- do.call(tabBox, c(biodomain_modules, biodomain_correlation, l2fc_corr, gprofilers, go_terms))
+  m <- do.call(tabBox, c(transcriptomics_modules, proteomics_modules, biodomain_correlation, l2fc_corr, gprofilers, go_terms))
   m$attribs$class <- 'col-sm-12'
   
   m
@@ -182,6 +198,7 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers) {
 ui <- dashboardPage(
   skin = 'black',
   header = dashboardHeader(
+    tags$li('Dashboard by: Robert R Butler III & Crystal Han', br(), 'Please cite:', a('TBD', href = '#'), class = 'dropdown'),
     title = 'T41B + BD10-2 + stim'
   ),
   sidebar = dashboardSidebar(
@@ -257,25 +274,22 @@ server <- function(input, output, session) {
   output$page_legend <- renderUI({
     geno <- page_data()[['meta']][['geno']]
     drug <- page_data()[['meta']][['drug']]
-    
-    # veh <- ifelse(drug == 'TBS', 'VEH_', '')
+    footnote <- page_data()[['meta']][['footnote']]
     
     div(
       p(str_c('WT_VEH_TBS vs. WT_VEH'), br(), icon('arrow-right'),
               span(str_c(' Stimulation effect in WT group'))),
-      br(style="line-height: 5px"),
       p(str_c(geno, '_VEH_TBS vs. ', geno, '_VEH'), br(), icon('arrow-right'),
               span(str_c(' Stimulation effect in ', geno, ' group'))),
-      br(style="line-height: 5px"),
       p(str_c(geno, '_', drug, '_TBS vs. ', geno, '_', drug), br(), icon('arrow-right'),
               span(str_c(' Stimulation effect in ', geno, '_', drug, ' group'))),
-      br(style="line-height: 5px"),
       # Wt drug group, uncomment if present
       # p(str_c('WT_', drug, '_TBS vs. WT_', drug), br(), icon('arrow-right'),
               # span(str_c(' Stimulation effect in WT_', drug, ' group'))),
-      br(), br(), br(),
-      p(paste("Copyright \U00A9 Longo Lab", format(Sys.Date(), "%Y"))),
-      p("This app made by: ", br(), "Crystal Han & Robert R Butler III")
+      br(),
+      footnote,
+      br(),
+      p(paste('Copyright \U00A9 Longo Lab', format(Sys.Date(), '%Y')))
     )
   })
   
@@ -392,12 +406,12 @@ server <- function(input, output, session) {
                     container = sketch,
                     class = 'compact',
                     escape = F,
-                    callback = JS("$(\"[data-type='number'] input[type='search']\").attr('placeholder','');"),
+                    callback = htmlwidgets::JS("$(\"[data-type='number'] input[type='search']\").attr('placeholder','');"),
                     options = list(
                       dom = 'tip',
                       scrollX = T,
                       scrollY = T,
-                      rowCallback = JS(render_tooltip),
+                      rowCallback = htmlwidgets::JS(render_tooltip),
                       columnDefs = list(
                         list(targets = modules_col:(modules_col + 6), className = 'dt-right')
                       ),

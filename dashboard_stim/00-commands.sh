@@ -21,6 +21,6 @@ sbatch -J $nameset --mem=5G -c 2 -t 01:00:00 -p interactive \
   --wrap "ml R/4.2.2; biodomain_enrichment.R -n $nameset -g APPL/S -d BD10-2 -i Gene_id -t stim"
 
 # save_stim_dashboard_files.R
-sbatch -J $nameset --mem=5G -c 2 -t 01:00:00 -p interactive \
+sbatch -J $nameset --mem=50G -c 2 -t 02:00:00 -p interactive \
   -o %x/%A_save_stim_dashboard_files_%x.log \
   --wrap "ml R/4.2.2; save_stim_dashboard_files.R -n $nameset -g APPL/S -d BD10-2 -i Gene_id"
