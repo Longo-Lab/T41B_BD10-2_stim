@@ -278,14 +278,14 @@ server <- function(input, output, session) {
     
     div(
       p(str_c('WT_VEH_TBS vs. WT_VEH'), br(), icon('arrow-right'),
-              span(str_c(' Stimulation effect in WT group'))),
+              span(str_c(' Stim effect in WT group'))),
       p(str_c(geno, '_VEH_TBS vs. ', geno, '_VEH'), br(), icon('arrow-right'),
-              span(str_c(' Stimulation effect in ', geno, ' group'))),
+              span(str_c(' Stim effect in ', geno, ' group'))),
       p(str_c(geno, '_', drug, '_TBS vs. ', geno, '_', drug), br(), icon('arrow-right'),
-              span(str_c(' Stimulation effect in ', geno, '_', drug, ' group'))),
+              span(str_c(' Stim effect in ', geno, '_', drug, ' group'))),
       # Wt drug group, uncomment if present
       # p(str_c('WT_', drug, '_TBS vs. WT_', drug), br(), icon('arrow-right'),
-              # span(str_c(' Stimulation effect in WT_', drug, ' group'))),
+              # span(str_c(' Stim effect in WT_', drug, ' group'))),
       br(),
       footnote,
       br(),

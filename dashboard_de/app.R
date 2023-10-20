@@ -221,7 +221,11 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
   gsea_tabs <- c(gsea_tabs[c(1, 3, 5)], gsea_tabs[c(2, 4, 6)])
   
   # tabBox object
-  m <- do.call(tabBox, c(transcriptomics_modules, proteomics_modules, biodomain_correlation, l2fc_corr, list(tabPanel('gProfiler', '')), gprofiler_tabs, list(tabPanel('GSEA', '')), gsea_tabs))
+  m <- do.call(tabBox, c(
+    transcriptomics_modules, proteomics_modules, biodomain_correlation, l2fc_corr, 
+    list(tabPanel('gProfiler', '')), gprofiler_tabs, 
+    list(tabPanel('GSEA', ''), tabPanel('GSEA correlation', checkboxGroupInput('biodomains', 'Biodomains', gseas[[1]]$geno$enr_tbl$Biodomain %>% unique() %>% sort() %>% as.character()), checkboxInput('all', 'Select All'), textOutput('gsea_corr'))), gsea_tabs)
+  )
   m$attribs$class <- 'col-sm-12'
   
   # remove default click event on grouping tabs
@@ -231,7 +235,7 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
   }
   
   # add class to collapsing tabs for easier selection
-  for (idx in 5:18) {
+  for (idx in 5:19) {
     cl <- (m$children[[1]]$children[[1]]$children[[idx]]$children[[1]]$children[[2]] %>% str_split(' '))[[1]][[1]] %>% str_to_lower()
     
     if (idx %in% c(5, 12)) {
@@ -511,6 +515,9 @@ server <- function(input, output, session) {
     
     do.call(tabItems, pages)
   })
+  
+  # Render plot
+  output$gsea_corr <- renderText({input$biodomains})
 }
 
 shinyApp(ui, server)
