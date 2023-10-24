@@ -146,6 +146,9 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
     out_tbl <- missing_data
     if (length(g_tbl) > 1) {
       out_tbl <- g_tbl %>% 
+        mutate(
+          term_id = if_else(str_detect(term_id, '^GO:'), str_c('<a href="https://www.ebi.ac.uk/QuickGO/term/', term_id, '">', term_id, '</a>'), term_id)
+        ) %>% 
         datatable(
           selection = 'none',
           height = '300px',
@@ -196,6 +199,9 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
     
     gsea_tbl <- gseas[[category]][['enr_tbl']] %>%
       dplyr::select(Biodomain, ONTOLOGY, ID, Description, setSize, p.adjust, NES) %>%
+      mutate(
+        ID = str_c('<a href="https://www.ebi.ac.uk/QuickGO/term/', ID, '">', ID, '</a>')
+      ) %>% 
       datatable(
         selection = 'none',
         height = '300px',
@@ -220,11 +226,14 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
   
   gsea_tabs <- c(gsea_tabs[c(1, 3, 5)], gsea_tabs[c(2, 4, 6)])
   
+  # GSEA correlation
+  gsea_correlation <- list(tabPanel('GSEA correlation', gseas$corr))
+  
   # tabBox object
   m <- do.call(tabBox, c(
     transcriptomics_modules, proteomics_modules, biodomain_correlation, l2fc_corr, 
     list(tabPanel('gProfiler', '')), gprofiler_tabs, 
-    list(tabPanel('GSEA', ''), tabPanel('GSEA correlation', checkboxGroupInput('biodomains', 'Biodomains', gseas[[1]]$geno$enr_tbl$Biodomain %>% unique() %>% sort() %>% as.character()), checkboxInput('all', 'Select All'), textOutput('gsea_corr'))), gsea_tabs)
+    list(tabPanel('GSEA', '')), gsea_correlation, gsea_tabs)
   )
   m$attribs$class <- 'col-sm-12'
   
