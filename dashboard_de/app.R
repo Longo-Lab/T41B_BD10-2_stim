@@ -55,11 +55,11 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
   imgs <- str_c(
     file.path(img_dir, typeout, round_num), 
     ifelse(is_sc, str_c(nameset, '.', cluster), cluster),
-    c('TMT-AD', 'BA6', 'BA37'), 
+    c('TMT-AD', 'BA6'), 
     'Modules_Up-Down.full.logfdr.png',
     sep = '.'
   )
-  names(imgs) <- c('Tmt-AD', 'BA6 resilience', 'BA37 resilience')
+  names(imgs) <- c('Tmt-AD', 'BA6/BA37 resilience')
   
   proteomics_modules <- list(tabPanel(
     'Proteomics enrichment', 
@@ -466,6 +466,7 @@ server <- function(input, output, session) {
               width = 12,
               tabPanel(
                 'Genes list',
+                class = 'genes-list',
                 results %>% 
                   mutate(
                     ensembl_gene_id = str_c('<a href="https://www.ncbi.nlm.nih.gov/gene/?term=', ensembl_gene_id, '">', ensembl_gene_id, '</a>'),
