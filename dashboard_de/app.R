@@ -396,16 +396,17 @@ server <- function(input, output, session) {
           th(rowspan = 2, 'Category'),
           th(rowspan = 2, 'Direct'),
           analyses_cols,
-          th(colspan = 5, style = 'background-color:#eeeeee;border-bottom:none;text-align: center;', 'Modules'),
+          th(colspan = 6, style = 'background-color:#eeeeee;border-bottom:none;text-align: center;', 'Modules'),
           th(colspan = 2, style = 'background-color:#f9f3d7;border-bottom:none;text-align: center;', 'TF')
         ),
         tr(
           lapply(rep(de_names, length(analyses_cols)), th),
           th('TreatAD'),
-          th('TmtAD'),
           th('Mostafavi'),
           th('Milind'),
           th('Wan'),
+          th('TmtAD'),
+          th('Resilience'),
           th('AnimalTFDB'),
           th('ChEMBL')
         )
@@ -425,7 +426,7 @@ server <- function(input, output, session) {
         
       // Module columns
       var m = %s;
-      for (var i = m; i < m + 5; i++) {
+      for (var i = m; i < m + 6; i++) {
         var modules = data[i] ? data[i].split('|')[1].split(',') : [];
         $('td:eq(' + i + ')', row)
           .html('<span class=\"tbl-info\" title=\"' + modules.join('&#010;') + '\">' + modules.length + '</span>');
@@ -433,8 +434,8 @@ server <- function(input, output, session) {
       
       // TF columns
       var c = '';
-      if (data[m + 6] !== null) {
-        var info = data[m + 6].split('~'),
+      if (data[m + 7] !== null) {
+        var info = data[m + 7].split('~'),
             num = parseInt(info[0]),
             labels = info[1].split('|'),
             source = info[2];
@@ -442,7 +443,7 @@ server <- function(input, output, session) {
         c = '<span class=\"tbl-info\" title=\"Source: ' + source + '&#010;&#010;' + labels.join('&#010;') + '\">' + num + '</span>';
       }
         
-      $('td:eq(' + (m + 6) + ')', row)
+      $('td:eq(' + (m + 7) + ')', row)
         .html(c);
     }
     ", modules_col)
@@ -473,10 +474,11 @@ server <- function(input, output, session) {
                     external_gene_name = str_c(external_gene_name, gene_biotype, chromosome_name, sep = '|'),
                     category = factor(category),
                     treatAD = add_count(treatAD),
-                    tmtAD = add_count(tmtAD),
                     mostafavi = add_count(mostafavi),
                     milind = add_count(milind),
                     wan = add_count(wan),
+                    tmtAD = add_count(tmtAD),
+                    resilience = add_count(resilience),
                     chembl = str_c(add_count(chembl_protein_labels, '\\|', '~'), if_else(is_mouse_chembl, 'Mouse', 'Human'), sep = '~')
                   ) %>% 
                   dplyr::select(-gene_biotype, -chromosome_name, -is_mouse_chembl, -chembl_protein_labels) %>% 
@@ -494,7 +496,7 @@ server <- function(input, output, session) {
                       scrollY = T,
                       rowCallback = htmlwidgets::JS(render_tooltip),
                       columnDefs = list(
-                        list(targets = modules_col:(modules_col + 6), className = 'dt-right')
+                        list(targets = modules_col:(modules_col + 7), className = 'dt-right')
                       ),
                       search = list(regex = T)
                     )
