@@ -39,16 +39,16 @@ get_tab_box <- function(typeout, cluster, l2fc_correlations, gprofilers, gseas) 
   imgs <- str_c(
     file.path(img_dir, typeout, round_num), 
     ifelse(is_sc, str_c(nameset, '.', cluster), cluster),
-    c('TREAT-AD', 'Mostafavi_etal', 'Milind_etal', 'Wan_etal'), 
+    c('Mostafavi_etal', 'Milind_etal', 'Wan_etal'), 
     'Modules_Up-Down.full.logfdr.png',
     sep = '.'
   )
-  names(imgs) <- c('Treat-AD', 'Mostafavi, et al.', 'Milind, et al.', 'Wan, et al.')
+  names(imgs) <- c('Mostafavi, et al.', 'Milind, et al.', 'Wan, et al.')
   
   transcriptomics_modules <- list(tabPanel(
     'Transcriptomics enrichment', 
-    do.call(div, c(lapply(names(imgs), function(i) { a(`data-value` = imgs[[i]], class = ifelse(i == 'Treat-AD', 'active', ''), i) }), class = 'modules')),
-    img(src = imgs[['Treat-AD']])
+    do.call(div, c(lapply(names(imgs), function(i) { a(`data-value` = imgs[[i]], class = ifelse(i == 'Mostafavi, et al.', 'active', ''), i) }), class = 'modules')),
+    img(src = imgs[['Mostafavi, et al.']])
   ))
   
   # Proteomics modules
