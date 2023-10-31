@@ -527,9 +527,6 @@ server <- function(input, output, session) {
     
     do.call(tabItems, pages)
   })
-  
-  # Render plot
-  output$gsea_corr <- renderText({input$biodomains})
 }
 
 shinyApp(ui, server)
