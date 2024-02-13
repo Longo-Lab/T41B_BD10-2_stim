@@ -3,15 +3,15 @@
 ##
 ## Script name: 02-drug_enrich_plot.R
 ##
-## Version: 0.0.1
+## Version: 0.0.2
 ##
 ## Purpose of script: plot top ontology enrichments across three drug conditions
 ##
 ## Author: Robert R Butler III
 ##
-## Date Created: 2023-04-03
+## Date Created: 2024-02-12
 ##
-## Copyright (c) 2023
+## Copyright (c) 2024
 ## Email: rrbutler@stanford.edu
 ##
 ## ---------------------------
@@ -48,7 +48,7 @@ nameset = 'BD10-2'
 tiss = data.table("short"=c("2", "9", "12"), 
                   "full"=c("APP", "BD10-2", "APP-BD10-2")) 
 target_files = unlist(lapply(tiss$short, function(i){
-  c(paste0(rootdir, paste0("/gost.", i, ".csv")))
+  c(paste0(rootdir, paste0("/gost.padj.", i, ".csv.gz")))
 }))
 if (!all(file.exists(target_files))) {
   stop("One or more input files are missing .n", call.=FALSE)
@@ -64,28 +64,49 @@ fd = rbindlist(fl, use.names=T, idcol="Tiss")
 fd[, c("intersection", "evidence_codes", "symbols", "source_order", "parents", "precision", "recall", "significant", "effective_domain_size", "Gene_name") := NULL]
 fd[, LogBH := -log10(p_value)]
 fd = fd[term_size < 1000]
-fd[DGE == "downregulated", LogBH := -(LogBH)]
+fd[query == "downregulated", LogBH := -(LogBH)]
 # cats = c("GO:BP", "GO:CC", "KEGG", "REAC", "WP")
 # cats = c("GO:BP")
 # fd = fd[source %in% cats]
 # plt = fd[, head(.SD, 10), by=c("DGE", "Tiss")][, term_name]
 # plt = fd[Tiss == "Wt", head(.SD, 5), by=c("source", "query")][,term_name]
-plt = c("cytokine production", "inflammatory response", 
-        "cytokine receptor activity", "regulation of neuron death", 
-        "intrinsic apoptotic signaling pathway", "neuroinflammatory response", 
-        "complement activation",
-        "cell aging", "Alzheimers Disease", "MAP kinase activation", 
-        "positive regulation of amyloid-beta formation", 
-        "axoneme", 
-        "regulation of long-term synaptic potentiation", 
-        "long-term synaptic potentiation",
-        "glutamate receptor activity", 
-        "EEG with spike-wave complexes", "EEG abnormality",
-        "EEG with generalized epileptiform discharges", 
-        "vesicle-mediated transport in synapse", "signal release from synapse", 
-        "neuronal action potential", 
-        "Glutamatergic synapse", "GABA-ergic synapse", "postsynaptic membrane", 
-        "synaptic signaling", "postsynapse", "presynapse")
+plt <- c(
+  "cytokine production", 
+  "inflammatory response", 
+  "cytokine receptor activity", 
+  "regulation of neuron death", 
+  "intrinsic apoptotic signaling pathway", 
+  "neuroinflammatory response", 
+  "complement activation",
+  "cell aging", 
+  "Alzheimers Disease", 
+  "MAP kinase activation", 
+  "positive regulation of amyloid-beta formation", 
+  "axoneme", 
+  "regulation of long-term synaptic potentiation", 
+  "long-term synaptic potentiation",
+  "glutamate receptor activity", 
+  "EEG with spike-wave complexes", 
+  "EEG abnormality",
+  "EEG with generalized epileptiform discharges", 
+  "vesicle-mediated transport in synapse", 
+  "signal release from synapse", 
+  "neuronal action potential", 
+  "Glutamatergic synapse", 
+  "GABA-ergic synapse", 
+  "postsynaptic membrane", 
+  "synaptic signaling", 
+  "postsynapse", 
+  "presynapse",
+  "Complement cascade",
+  "Complement activation, classical pathway",
+  "PI3K-Akt signaling pathway",
+  "Focal adhesion: PI3K-Akt-mTOR signaling pathway",
+  "JNK cascade",
+  "ERK1 and ERK2 cascade",
+  "Wnt signaling pathway and pluripotency",
+  "Wnt signaling pathway"
+)
 a = fd[term_name %in% plt]
 # # shuffle terms so microtubule based processes isn't at the bottom
 # term_order = rev(unique(a$term_name))
